@@ -1,5 +1,6 @@
 from enum import Enum
-
+import random
+from User import User
 
 class Agent:
     class Desire(Enum):
@@ -17,14 +18,15 @@ class Agent:
         A = 1
         B = 2
 
-    def __init__(self, speed, max_users, price, vehicle_type=VehicleType.A):
+    def __init__(self, speed, max_users, price, position=(0, 0), vehicle_type=VehicleType.A):
+        #self._id = ...  Do we need id?
         self._speed = speed
         self._price = price
         self._max_users = max_users
         self._current_total_users = 0
         self._current_users = []
         self._direction = 0
-        self._position = (0, 0)
+        self._position = position
         self._type = vehicle_type
         self._desires = []
         self._intentions = []
@@ -49,5 +51,14 @@ class Agent:
     def free_user_space(self):
         return self._current_users.__len__() < self._max_users
 
+    def rotate_right(self):
+        return (self._direction+90) % 360
 
+    def rotate_left(self):
+        return (self._direction-90) % 360
 
+    def rotate_random(self):
+        if random.choice([True, False]):
+            self.rotate_right()
+        else:
+            self.rotate_left()
