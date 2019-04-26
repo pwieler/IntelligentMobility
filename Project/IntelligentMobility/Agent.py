@@ -2,6 +2,7 @@ from enum import Enum
 import random
 from User import User
 
+
 class Agent:
     class Desire(Enum):
         PICKUP = 1
@@ -31,6 +32,7 @@ class Agent:
         self._desires = []
         self._intentions = []
         self._beliefs = []
+        self._state['Action'] = 3
 
     def cost(self, travel_distance):
         return self.time(travel_distance)*self._price
