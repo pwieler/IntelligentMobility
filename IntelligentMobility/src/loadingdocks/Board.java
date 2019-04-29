@@ -86,19 +86,18 @@ public class Board {
 			double rYd = Math.random()*nY;
 			int rX = (int) rXd;
 			int rY = (int) rYd;
-			if(board[rX][rY].color!=Color.gray) {
-				Type type = Type.values()[new Random().nextInt(Type.values().length)];
-				Color color = Color.pink;
-				switch(type) {
-				case A:
-					color = Color.yellow;
-					break;
-				case B:
-					color = Color.blue;
-					break;
+			Type type = Type.values()[new Random().nextInt(Type.values().length)];
+			Color color = Color.pink;
+			switch(type) {
+			case A:
+				color = Color.yellow;
+				break;
+			case B:
+				color = Color.blue;
+				break;
 				
-				}
-					
+			}
+			if(board[rX][rY].color!=Color.gray || (type.equals(Type.B) && closeToStreet(rX,rY))) {
 				vehicles.add(new Agent(new Point(rX,rY), color,type));
 			}
 		}
