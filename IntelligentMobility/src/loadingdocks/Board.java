@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import loadingdocks.Agent.Action;
 import loadingdocks.Block.Shape;
@@ -22,8 +23,9 @@ public class Board {
 	private static List<Agent> vehicles;
 	private static List<User> users;
 	
-	private static double wallPercentage = 0.5;
+//	private static double wallPercentage = 0.5;
 	private static final int nVehicles = 6;
+	private static final int nUsers = 15;
 	
 	/****************************
 	 ***** A: SETTING BOARD *****
@@ -37,17 +39,8 @@ public class Board {
 			for(int j=0; j<nY; j++) 
 				board[i][j] = new Block(Shape.free, Color.lightGray);
 				
-		/** B: create ramp, boxes and shelves */
-//		int rampX = 4, rampY = 3;
-//		Color[] colors = new Color[] {Color.red, Color.blue, Color.green, Color.yellow};
+		/** B: create ramp, useres and shelves */
 		users = new ArrayList<User>();
-//		for(int i=rampX, k=0; i<2*rampX; i++) {
-//			for(int j=0; j<rampY; j++) {
-//				board[i][j] = new Block(Shape.building, Color.gray);
-//				if((j==0||j==1) && (i==(rampX+1)||i==(rampX+2))) continue;
-//				else boxes.add(new User(new Point(i,j), colors[k++%4]));
-//			}
-//		}
 		
 		/* Random walls
 		for(int i = 0 ; i< nX*nY*wallPercentage; i++) {
@@ -58,7 +51,7 @@ public class Board {
 		}
 		*/
 		
-		//TODO
+		/**Create Map **/
 		for(int i = 0;i<nX;i++) {
 			for(int j = 0; j<nY;j++) {
 				if( (i<nX/4 && j<nY/2 && i>0 && j>0) || (i>nX/4 && i<nX/2 && j>0 && j<nY/4)
@@ -67,26 +60,63 @@ public class Board {
 						|| (i<nX/6 && i>0 && j==nY-1) || ( i>nX/3 && i<nX/2 && j<nY-2 && j>nY*3/4)
 						|| (i<nX*4/5 && i>nX/3 && j==nY-1) || (i<nX*3/4 && i>nX/2 && j>nY*3/4)
 						|| (i<nX*3/5 && i>nX/2 && j>nY/3 && j<nY*3/4) || (i>nX*3/5 && i<nX*4/5 && j>nY/2 && j<nY*3/4)
-						|| (i>nX*3/5 && i<nX*5/7 && j>nY/3 && j<nY*3/4))
+						|| (i>nX*3/5 && i<nX*5/7 && j>nY/3 && j<nY*3/4) || (i>nX/2 && i<nX*6/7 && j>nY/8 && j<nY/3 )
+						|| (i>nX/2 && i<nX*2/3 && j<nY/8 ) || (i>nX*4/6 && i<nX*6/7  && j<nY/8 )
+						|| ( i>nX*6/7 && j<nY/3 ) || ( i>nX*7/10 && i<nX-1 && j>nY/3 && j<nY/2)
+						|| ( i>nX*8/10 && i<nX-1 && j>nY/3 && j<nY-1)  || ( i<nX*5/6 && i>nX/2 && j<nY-2 && j>nY*3/4))
 					board[i][j] = new Block(Shape.building, Color.gray);
 			}
 		}
 		
+		/** Add Users */
+		while(users.size()<nUsers) {
+			double rXd = Math.random()*nX;
+			double rYd = Math.random()*nY;
+			int rX = (int) rXd;
+			int rY = (int) rYd;
+			if(board[rX][rY].color==Color.gray && closeToStreet(rX,rY)){
+				users.add(new User(new Point(rX,rY), Color.RED));
+			}
+		}
 		
-//		Point[] pshelves = new Point[] {new Point(0,6), new Point(0,8), new Point(8,6), new Point(8,8)};
-//		for(int k=0; k<pshelves.length; k++) 
-//			for(int i=0; i<2; i++) 
-//				board[pshelves[k].x+i][pshelves[k].y] = new Block(Shape.shelf, colors[k]);
-//		
 		/** C: create agents */
 		vehicles = new ArrayList<Agent>();
-		//TODO: Tipo de agentes
-		for(int j=0; j<nVehicles; j++) {
-			vehicles.add(new Agent(new Point(0,j), Color.pink));
+		while(vehicles.size()<nVehicles) {
+			double rXd = Math.random()*nX;
+			double rYd = Math.random()*nY;
+			int rX = (int) rXd;
+			int rY = (int) rYd;
+			if(board[rX][rY].color!=Color.gray) {
+				Type type = Type.values()[new Random().nextInt(Type.values().length)];
+				Color color = Color.pink;
+				switch(type) {
+				case A:
+					color = Color.yellow;
+					break;
+				case B:
+					color = Color.blue;
+					break;
+				
+				}
+					
+				vehicles.add(new Agent(new Point(rX,rY), color,type));
+			}
 		}
 		objects = new Entity[nX][nY];
-		for(User box : users) objects[box.point.x][box.point.y]=box;
+		for(User user : users) objects[user.point.x][user.point.y]=user;
 		for(Agent agent : vehicles) objects[agent.point.x][agent.point.y]=agent;
+	}
+	
+	public static boolean closeToStreet(int rX,int rY) {
+		for(int i=-1;i<2;i++) {
+			for(int j=-1;j<2;j++) {
+				if(rX>1 && rY>1 && rY<nY-1 && rX<nX-1)
+				if(board[rX-i][rY-j].color!=Color.gray) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	/****************************
@@ -172,12 +202,12 @@ public class Board {
 
 	public static void displayObjects(){
 		for(Agent agent : vehicles) GUI.displayObject(agent);
-		for(User box : users) GUI.displayObject(box);
+		for(User user : users) GUI.displayObject(user);
 	}
 	
 	public static void removeObjects(){
 		for(Agent agent : vehicles) GUI.removeObject(agent);
-		for(User box : users) GUI.removeObject(box);
+		for(User user : users) GUI.removeObject(user);
 	}
 	
 	public static void associateGUI(GUI graphicalInterface) {

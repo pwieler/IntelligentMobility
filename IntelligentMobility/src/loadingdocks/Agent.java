@@ -21,11 +21,12 @@ public class Agent extends Entity {
 
 public enum Desire { pick, drop }
 	public enum Action { moving, stop, rotateRight, rotateLeft, pickup, drop}
-	public enum Type {A,B,C}
+	
 	
 	public int id ;
 	public static int NUM_USERS;
 	
+	public Type type;
 	public int speed;
 	public int price;
 	public int direction = 90;
@@ -45,8 +46,9 @@ public enum Desire { pick, drop }
 	public Queue<Action> plan;
 	
 	
-	public Agent(Point point, Color color){ 
+	public Agent(Point point, Color color, Type type){ 
 		super(point, color);
+		this.type = type;
 		currentPosition  = point;
 		destinations = new ArrayList<Point>();
 		map = new HashMap<Point,Block>();

@@ -45,9 +45,9 @@ public class GUI extends JFrame {
             for(Entity entity : entities) {
 	            g.setColor(entity.color);
 	            if(entity instanceof User) {
-	            	g.fillRect(15, 15, 20, 20);
+	            	g.fillRect(5, 5, 13, 13);
 		            g.setColor(Color.white);
-	            	g.drawRect(15, 15, 20, 20);
+	            	g.drawRect(5, 5, 13, 13);
 	            } else {
 	        		switch(((Agent)entity).direction) {
 		    			case 0:  g.fillPolygon(new int[]{3, 13, 23}, new int[]{25, 5, 25}, 3); break;
