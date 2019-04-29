@@ -44,7 +44,7 @@ public class GUI extends JFrame {
             super.paintComponent(g);
             for(Entity entity : entities) {
 	            g.setColor(entity.color);
-	            if(entity instanceof Box) {
+	            if(entity instanceof User) {
 	            	g.fillRect(15, 15, 20, 20);
 		            g.setColor(Color.white);
 	            	g.drawRect(15, 15, 20, 20);

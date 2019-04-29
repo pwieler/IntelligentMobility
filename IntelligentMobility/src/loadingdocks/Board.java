@@ -20,7 +20,7 @@ public class Board {
 	private static Block[][] board;
 	private static Entity[][] objects;
 	private static List<Agent> robots;
-	private static List<Box> boxes;
+	private static List<User> boxes;
 	
 	
 	/****************************
@@ -38,12 +38,12 @@ public class Board {
 		/** B: create ramp, boxes and shelves */
 		int rampX = 4, rampY = 3;
 		Color[] colors = new Color[] {Color.red, Color.blue, Color.green, Color.yellow};
-		boxes = new ArrayList<Box>();
+		boxes = new ArrayList<User>();
 		for(int i=rampX, k=0; i<2*rampX; i++) {
 			for(int j=0; j<rampY; j++) {
 				board[i][j] = new Block(Shape.ramp, Color.gray);
 				if((j==0||j==1) && (i==(rampX+1)||i==(rampX+2))) continue;
-				else boxes.add(new Box(new Point(i,j), colors[k++%4]));
+				else boxes.add(new User(new Point(i,j), colors[k++%4]));
 			}
 		}
 		Point[] pshelves = new Point[] {new Point(0,6), new Point(0,8), new Point(8,6), new Point(8,8)};
@@ -57,7 +57,7 @@ public class Board {
 		for(int j=0; j<nrobots; j++) robots.add(new Agent(new Point(0,j), Color.pink));
 		
 		objects = new Entity[nX][nY];
-		for(Box box : boxes) objects[box.point.x][box.point.y]=box;
+		for(User box : boxes) objects[box.point.x][box.point.y]=box;
 		for(Agent agent : robots) objects[agent.point.x][agent.point.y]=agent;
 	}
 	
@@ -144,12 +144,12 @@ public class Board {
 
 	public static void displayObjects(){
 		for(Agent agent : robots) GUI.displayObject(agent);
-		for(Box box : boxes) GUI.displayObject(box);
+		for(User box : boxes) GUI.displayObject(box);
 	}
 	
 	public static void removeObjects(){
 		for(Agent agent : robots) GUI.removeObject(agent);
-		for(Box box : boxes) GUI.removeObject(box);
+		for(User box : boxes) GUI.removeObject(box);
 	}
 	
 	public static void associateGUI(GUI graphicalInterface) {

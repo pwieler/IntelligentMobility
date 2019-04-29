@@ -18,35 +18,38 @@ import loadingdocks.Block.Shape;
  */
 public class Agent extends Entity {
 
-	public enum Desire { grab, drop, initialPosition }
-	public enum Action { moveAhead, grab, drop, rotateRight, rotateLeft}
+
+public enum Desire { pick, drop }
+	public enum Action { moving, stop, rotateRight, rotateLeft, pickup, drop}
+	public enum Type {A,B,C}
 	
-	public static int NUM_BOXES = 8;
+	public int id ;
+	public static int NUM_USERS;
 	
+	public int speed;
+	public int price;
 	public int direction = 90;
-	public Box cargo;
+	public Point currentPosition;
+	private Point ahead;
+
+	public int max_users;
+	public ArrayList<User> users = new ArrayList<User>();
 	
-	public Point initialPoint;
-	public int boxesOnShelves, boxesOnRamp;
-	public Map<Point,Block> warehouse; //internal map of the warehouse
-	public List<Point> freeShelves; //free shelves
-	public List<Point> rampBoxes; //ramp cells with boxes
+//	public Point initialPoint;
+	public Map<Point,Block> map; //internal map of the warehouse
+	public List<Point> destinations;
 	
+	//public List<Belief> beliefs;
 	public List<Desire> desires;
 	public AbstractMap.SimpleEntry<Desire,Point> intention;
 	public Queue<Action> plan;
 	
-	private Point ahead;
 	
 	public Agent(Point point, Color color){ 
 		super(point, color);
-		
-		initialPoint = point;
-		boxesOnShelves = 0;
-		boxesOnRamp = NUM_BOXES;
-		freeShelves = new ArrayList<Point>();
-		rampBoxes = new ArrayList<Point>();
-		warehouse = new HashMap<Point,Block>();
+		currentPosition  = point;
+		destinations = new ArrayList<Point>();
+		map = new HashMap<Point,Block>();
 		plan = new LinkedList<Action>();
 	} 
 	
@@ -86,7 +89,7 @@ public class Agent extends Entity {
 			case drop : 
 				Color boxcolor = cargoColor();
 				for(Point shelf : freeShelves) 
-					if(warehouse.get(shelf).color.equals(boxcolor)) {
+					if(map.get(shelf).color.equals(boxcolor)) {
 						intention.setValue(shelf);
 						break;
 					}
@@ -182,7 +185,7 @@ public class Agent extends Entity {
 	}
 
 	public void receiveMessage(Point point, Shape shape, Color color, Boolean free) {
-		warehouse.put(point, new Block(shape,color));
+		map.put(point, new Block(shape,color));
 		if(shape.equals(Shape.shelf)) {
 			if(free) freeShelves.add(point);
 			else freeShelves.remove(point);
@@ -287,7 +290,7 @@ public class Agent extends Entity {
 	/* Check if the cell ahead contains a box */
 	public boolean isBoxAhead(){
 		Entity entity = Board.getEntity(ahead);
-		return entity!=null && entity instanceof Box;
+		return entity!=null && entity instanceof User;
 	}
 
 	/* Return the type of cell */
@@ -357,7 +360,7 @@ public class Agent extends Entity {
 
 	/* Cargo box */
 	public void grabBox() {
-	  cargo = (Box) Board.getEntity(ahead);
+	  cargo = (User) Board.getEntity(ahead);
 	  cargo.grabBox(point);
 	  Board.sendMessage(Action.grab, ahead); 
 	}
@@ -415,7 +418,7 @@ public class Agent extends Entity {
 	        for (int i = 0; i < 4; i++) { 
 	            int x = pt.x + row[i], y = pt.y + col[i]; 
     	        if(x==dest.x && y==dest.y) return new Node(dest,curr); 
-	            if(!isWall(x,y) && !warehouse.containsKey(new Point(x,y)) && !visited[x][y]){ 
+	            if(!isWall(x,y) && !map.containsKey(new Point(x,y)) && !visited[x][y]){ 
 	                visited[x][y] = true; 
 	    	        q.add(new Node(new Point(x,y), curr)); 
 	            } 
