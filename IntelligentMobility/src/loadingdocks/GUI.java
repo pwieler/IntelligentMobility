@@ -50,10 +50,10 @@ public class GUI extends JFrame {
 	            	g.drawRect(15, 15, 20, 20);
 	            } else {
 	        		switch(((Agent)entity).direction) {
-		    			case 0:  g.fillPolygon(new int[]{10, 25, 40}, new int[]{40, 10, 40}, 3); break;
-		    			case 90: g.fillPolygon(new int[]{10, 40, 10}, new int[]{10, 25, 40}, 3); break;
-		    			case 180:g.fillPolygon(new int[]{10, 40, 25}, new int[]{10, 10, 40}, 3); break;
-		    			default: g.fillPolygon(new int[]{10, 40, 40}, new int[]{25, 10, 40}, 3); 
+		    			case 0:  g.fillPolygon(new int[]{3, 13, 23}, new int[]{25, 5, 25}, 3); break;
+		    			case 90: g.fillPolygon(new int[]{5, 25, 5}, new int[]{3, 13, 23}, 3); break;
+		    			case 180:g.fillPolygon(new int[]{3, 23, 13}, new int[]{5, 5, 25}, 3); break;
+		    			default: g.fillPolygon(new int[]{5, 25, 25}, new int[]{13, 3, 23}, 3); 
 		    		}
 	            }
             }
