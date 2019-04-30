@@ -44,7 +44,7 @@ public class GUI extends JFrame {
             super.paintComponent(g);
             for(Entity entity : entities) {
 	            g.setColor(entity.color);
-	            if(entity instanceof Box) {
+	            if(entity instanceof User) {
 	            	g.fillRect(15, 15, 20, 20);
 		            g.setColor(Color.white);
 	            	g.drawRect(15, 15, 20, 20);
@@ -61,21 +61,26 @@ public class GUI extends JFrame {
 	}
 
 	public GUI() {
-		setTitle("FirePrevention");		
+		setTitle("IntelligentMobility");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
-		setSize(555, 625);
-		add(createButtonPanel());
-		
+
 		Board.initialize();
 		Board.associateGUI(this);
-		
-		boardPanel = new JPanel();
-		boardPanel.setSize(new Dimension(500,500));
-		boardPanel.setLocation(new Point(20,60));
-		
+
 		nX = Board.nX;
 		nY = Board.nY;
+
+		setSize(60*nY, 70*nX);
+		add(createButtonPanel());
+
+
+		
+		boardPanel = new JPanel();
+		boardPanel.setSize(new Dimension(50*nY,50*nX));
+		boardPanel.setLocation(new Point(20,60));
+		
+
 		boardPanel.setLayout(new GridLayout(nX,nY));
 		for(int i=0; i<nX; i++)
 			for(int j=0; j<nY; j++)

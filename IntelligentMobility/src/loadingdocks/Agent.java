@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
-import loadingdocks.Block.Shape;
+import loadingdocks.Block.Type;
 
 /**
  * Agent behavior
@@ -18,19 +18,18 @@ import loadingdocks.Block.Shape;
  */
 public class Agent extends Entity {
 
-	public enum Desire { grab, drop, initialPosition }
-	public enum Action { moveAhead, grab, drop, rotateRight, rotateLeft}
-	
-	public static int NUM_BOXES = 8;
+	public enum Desire {pickup, drop, initialPosition }
+	public enum Action { moveAhead, pickup, drop, rotateRight, rotateLeft}
+
 	
 	public int direction = 90;
-	public Box cargo;
+	public User cargo;
 	
 	public Point initialPoint;
-	public int boxesOnShelves, boxesOnRamp;
+	public int usersDelivered, usersToPickUp;
 	public Map<Point,Block> warehouse; //internal map of the warehouse
-	public List<Point> freeShelves; //free shelves
-	public List<Point> rampBoxes; //ramp cells with boxes
+	public List<Point> freeTargetLocations; //free shelves
+	public List<Point> pickUpCells; //pickup cells with boxes
 	
 	public List<Desire> desires;
 	public AbstractMap.SimpleEntry<Desire,Point> intention;
@@ -38,14 +37,14 @@ public class Agent extends Entity {
 	
 	private Point ahead;
 	
-	public Agent(Point point, Color color){ 
+	public Agent(Point point, Color color, int countUsers){
 		super(point, color);
 		
 		initialPoint = point;
-		boxesOnShelves = 0;
-		boxesOnRamp = NUM_BOXES;
-		freeShelves = new ArrayList<Point>();
-		rampBoxes = new ArrayList<Point>();
+		usersDelivered = 0;
+		usersToPickUp = countUsers;
+		freeTargetLocations = new ArrayList<Point>();
+		pickUpCells = new ArrayList<Point>();
 		warehouse = new HashMap<Point,Block>();
 		plan = new LinkedList<Action>();
 	} 
@@ -75,17 +74,17 @@ public class Agent extends Entity {
 		
 		desires = new ArrayList<Desire>(); 
 		if(cargo()) desires.add(Desire.drop); 
-		if(boxesOnRamp > 0) desires.add(Desire.grab);
-		if(boxesOnRamp == 0) desires.add(Desire.initialPosition);
+		if(usersToPickUp > 0) desires.add(Desire.pickup);
+		if(usersToPickUp == 0) desires.add(Desire.initialPosition);
 		intention = new AbstractMap.SimpleEntry<>(desires.get(0),null);
 		
 		switch(intention.getKey()) { //high-priority desire
-			case grab : 
-				if(!rampBoxes.isEmpty()) intention.setValue(rampBoxes.get(0));
+			case pickup:
+				if(!pickUpCells.isEmpty()) intention.setValue(pickUpCells.get(0));
 				break;
 			case drop : 
 				Color boxcolor = cargoColor();
-				for(Point shelf : freeShelves) 
+				for(Point shelf : freeTargetLocations)
 					if(warehouse.get(shelf).color.equals(boxcolor)) {
 						intention.setValue(shelf);
 						break;
@@ -99,9 +98,9 @@ public class Agent extends Entity {
 		plan = new LinkedList<Action>();
 		if(intention.getValue()==null) return;
 		switch(intention.getKey()) {
-			case grab : 
+			case pickup:
 				plan = buildPathPlan(point,intention.getValue());
-				plan.add(Action.grab);
+				plan.add(Action.pickup);
 				break;
 			case drop : 
 				plan = buildPathPlan(point,intention.getValue());
@@ -121,7 +120,7 @@ public class Agent extends Entity {
 	private boolean isPlanSound(Action action) {
 		switch(action) {
 			case moveAhead : return isFreeCell();
-			case grab : return isBoxAhead();
+			case pickup: return isBoxAhead();
 			case drop : return isShelf() && !isBoxAhead() && shelfColor().equals(cargoColor());
 			default : return true;
 		}		
@@ -132,19 +131,19 @@ public class Agent extends Entity {
 			case moveAhead : moveAhead(); return;
 			case rotateRight : rotateRight(); return;
 			case rotateLeft : rotateLeft(); return;
-			case grab : grabBox(); return;
+			case pickup: grabBox(); return;
 			case drop : dropBox(); return;
 		}		
 	}
 
 	private boolean impossibleIntention() {
-		if(intention.getKey().equals(Desire.grab)) return boxesOnRamp == 0;
+		if(intention.getKey().equals(Desire.pickup)) return usersToPickUp == 0;
 		else return false;
 	}
 
 	private boolean succeededIntention() {
 		switch(intention.getKey()) {
-			case grab : return cargo();
+			case pickup: return cargo();
 			case drop : return !cargo();
 			case initialPosition : return point.equals(initialPoint);
 		}
@@ -181,25 +180,25 @@ public class Agent extends Entity {
 		else Board.sendMessage(ahead, cellType(), cellColor(), !isBoxAhead());
 	}
 
-	public void receiveMessage(Point point, Shape shape, Color color, Boolean free) {
-		warehouse.put(point, new Block(shape,color));
-		if(shape.equals(Shape.shelf)) {
-			if(free) freeShelves.add(point);
-			else freeShelves.remove(point);
+	public void receiveMessage(Point point, Type type, Color color, Boolean free) {
+		warehouse.put(point, new Block(type,color));
+		if(type.equals(Type.target_location)) {
+			if(free) freeTargetLocations.add(point);
+			else freeTargetLocations.remove(point);
 		}
-		else if(shape.equals(Shape.ramp)) {
-			if(free) rampBoxes.remove(point);
-			else rampBoxes.add(point);
+		else if(type.equals(Type.pickup)) {
+			if(free) pickUpCells.remove(point);
+			else pickUpCells.add(point);
 		}
 	}
 	
 	public void receiveMessage(Action action, Point pt) {
 		if(action.equals(Action.drop)) {
-			boxesOnShelves++;
-			freeShelves.remove(pt);
-		} else if(action.equals(Action.grab)) {
-			boxesOnRamp--;
-			rampBoxes.remove(pt);
+			usersDelivered++;
+			freeTargetLocations.remove(pt);
+		} else if(action.equals(Action.pickup)) {
+			usersToPickUp--;
+			pickUpCells.remove(pt);
 		}
 	} 
 
@@ -270,29 +269,29 @@ public class Agent extends Entity {
 	  return cargo.color;
 	}
 
-	/* Return the color of the shelf ahead or 0 otherwise */
+	/* Return the color of the target_location ahead or 0 otherwise */
 	public Color shelfColor(){
 		return Board.getBlock(ahead).color;
 	}
 
-	/* Check if the cell ahead is floor (which means not a wall, not a shelf nor a ramp) and there are any robot there */
+	/* Check if the cell ahead is floor (which means not a wall, not a target_location nor a pickup) and there are any robot there */
 	public boolean isFreeCell() {
 	  return isRoomFloor() && Board.getEntity(ahead)==null;
 	}
 
 	public boolean isRoomFloor() {
-		return Board.getBlock(ahead).shape.equals(Shape.free);
+		return Board.getBlock(ahead).type.equals(Type.free);
 	}
 	
 	/* Check if the cell ahead contains a box */
 	public boolean isBoxAhead(){
 		Entity entity = Board.getEntity(ahead);
-		return entity!=null && entity instanceof Box;
+		return entity!=null && entity instanceof User;
 	}
 
 	/* Return the type of cell */
-	public Shape cellType() {
-	  return Board.getBlock(ahead).shape;
+	public Type cellType() {
+	  return Board.getBlock(ahead).type;
 	}
 
 	/* Return the color of cell */
@@ -300,16 +299,16 @@ public class Agent extends Entity {
 	  return Board.getBlock(ahead).color;
 	}
 
-	/* Check if the cell ahead is a shelf */
+	/* Check if the cell ahead is a target_location */
 	public boolean isShelf() {
 	  Block block = Board.getBlock(ahead);
-	  return block.shape.equals(Shape.shelf);
+	  return block.type.equals(Type.target_location);
 	}
 
-	/* Check if the cell ahead is a ramp */
+	/* Check if the cell ahead is a pickup */
 	public boolean isRamp(){
 	  Block block = Board.getBlock(ahead);
-	  return block.shape.equals(Shape.ramp);
+	  return block.type.equals(Type.pickup);
 	}
 
 	/* Check if the cell ahead is a wall */
@@ -322,7 +321,7 @@ public class Agent extends Entity {
 		return x<0 || y<0 || x>=Board.nX || y>=Board.nY;
 	}
 	
-	/* Check if we can drop a box in the shelf ahead */
+	/* Check if we can drop a box in the target_location ahead */
 	private boolean canDropBox() {
 		return isShelf() && !isBoxAhead() && cargo() && shelfColor().equals(cargoColor());
 	}
@@ -357,14 +356,14 @@ public class Agent extends Entity {
 
 	/* Cargo box */
 	public void grabBox() {
-	  cargo = (Box) Board.getEntity(ahead);
-	  cargo.grabBox(point);
-	  Board.sendMessage(Action.grab, ahead); 
+	  cargo = (User) Board.getEntity(ahead);
+	  cargo.pickUpUser(point);
+	  Board.sendMessage(Action.pickup, ahead);
 	}
 
 	/* Drop box */
 	public void dropBox() {
-		cargo.dropBox(ahead);
+		cargo.dropUser(ahead);
 	    cargo = null;
 		Board.sendMessage(Action.drop, ahead); 
 	}

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import loadingdocks.Agent.Action;
-import loadingdocks.Block.Shape;
+import loadingdocks.Block.Type;
 
 /**
  * Environment
@@ -16,11 +16,11 @@ public class Board {
 
 	/** The environment */
 
-	public static int nX = 10, nY = 10;
+	public static int nX = 30, nY = 20;
 	private static Block[][] board;
 	private static Entity[][] objects;
 	private static List<Agent> robots;
-	private static List<Box> boxes;
+	private static List<User> users;
 	
 	
 	/****************************
@@ -33,31 +33,37 @@ public class Board {
 		board = new Block[nX][nY];
 		for(int i=0; i<nX; i++) 
 			for(int j=0; j<nY; j++) 
-				board[i][j] = new Block(Shape.free, Color.lightGray);
-				
-		/** B: create ramp, boxes and shelves */
-		int rampX = 4, rampY = 3;
+				board[i][j] = new Block(Block.Type.free, Color.lightGray);
+
+
 		Color[] colors = new Color[] {Color.red, Color.blue, Color.green, Color.yellow};
-		boxes = new ArrayList<Box>();
-		for(int i=rampX, k=0; i<2*rampX; i++) {
-			for(int j=0; j<rampY; j++) {
-				board[i][j] = new Block(Shape.ramp, Color.gray);
-				if((j==0||j==1) && (i==(rampX+1)||i==(rampX+2))) continue;
-				else boxes.add(new Box(new Point(i,j), colors[k++%4]));
+		users = new ArrayList<User>();
+
+		int nUsers = 10;
+
+		for(int i=0;i<nUsers; i++) {
+			int x = (int)(Math.random() * nX);
+			int y = (int)(Math.random() * nY);
+			board[x][y] = new Block(Block.Type.pickup, Color.gray);
+			users.add(new User(new Point(x,y), colors[i%4]));
+
+			while(board[x][y].type != Type.free){
+				x = (int)(Math.random() * nX);
+				y = (int)(Math.random() * nY);
 			}
+
+			board[x][y] = new Block(Type.target_location, colors[i%4]);
+
 		}
-		Point[] pshelves = new Point[] {new Point(0,6), new Point(0,8), new Point(8,6), new Point(8,8)};
-		for(int k=0; k<pshelves.length; k++) 
-			for(int i=0; i<2; i++) 
-				board[pshelves[k].x+i][pshelves[k].y] = new Block(Shape.shelf, colors[k]);
+
 		
 		/** C: create agents */
-		int nrobots = 3;
+		int nrobots = 10;
 		robots = new ArrayList<Agent>();
-		for(int j=0; j<nrobots; j++) robots.add(new Agent(new Point(0,j), Color.pink));
+		for(int j=0; j<nrobots; j++) robots.add(new Agent(new Point(0,j), Color.pink, nUsers));
 		
 		objects = new Entity[nX][nY];
-		for(Box box : boxes) objects[box.point.x][box.point.y]=box;
+		for(User user : users) objects[user.point.x][user.point.y]= user;
 		for(Agent agent : robots) objects[agent.point.x][agent.point.y]=agent;
 	}
 	
@@ -122,8 +128,8 @@ public class Board {
 		GUI.update();
 	}
 
-	public static void sendMessage(Point point, Shape shape, Color color, boolean free) {
-		for(Agent a : robots) a.receiveMessage(point, shape, color, free);		
+	public static void sendMessage(Point point, Block.Type type, Color color, boolean free) {
+		for(Agent a : robots) a.receiveMessage(point, type, color, free);
 	}
 
 	public static void sendMessage(Action action, Point pt) {
@@ -144,12 +150,12 @@ public class Board {
 
 	public static void displayObjects(){
 		for(Agent agent : robots) GUI.displayObject(agent);
-		for(Box box : boxes) GUI.displayObject(box);
+		for(User user : users) GUI.displayObject(user);
 	}
 	
 	public static void removeObjects(){
 		for(Agent agent : robots) GUI.removeObject(agent);
-		for(Box box : boxes) GUI.removeObject(box);
+		for(User user : users) GUI.removeObject(user);
 	}
 	
 	public static void associateGUI(GUI graphicalInterface) {
