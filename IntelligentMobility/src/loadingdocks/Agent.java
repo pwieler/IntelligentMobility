@@ -18,6 +18,10 @@ import loadingdocks.Block.Type;
  */
 public class Agent extends Entity {
 
+	private Core core;
+	static int id_count = 0;
+	int ID;
+
 	public enum Desire {pickup, drop, initialPosition }
 	public enum Action { moveAhead, pickup, drop, rotateRight, rotateLeft}
 
@@ -37,8 +41,12 @@ public class Agent extends Entity {
 	
 	private Point ahead;
 	
-	public Agent(Point point, Color color, int countUsers){
+	public Agent(Core core, Point point, Color color, int countUsers){
 		super(point, color);
+
+		this.core = core;
+		ID = id_count++;
+		core.registerToCore(this);
 		
 		initialPoint = point;
 		usersDelivered = 0;
@@ -350,7 +358,7 @@ public class Agent extends Entity {
 	/* Move agent forward */
 	public void moveAhead() {
 		Board.updateEntityPosition(point,ahead);
-		if(cargo()) cargo.moveBox(ahead);
+		if(cargo()) cargo.moveUser(ahead);
 		point = ahead;
 	}
 

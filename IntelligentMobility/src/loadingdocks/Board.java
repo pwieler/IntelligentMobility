@@ -21,6 +21,7 @@ public class Board {
 	private static Entity[][] objects;
 	private static List<Agent> robots;
 	private static List<User> users;
+	private static Core core;
 	
 	
 	/****************************
@@ -28,6 +29,9 @@ public class Board {
 	 ****************************/
 	
 	public static void initialize() {
+
+		core = new Core();
+
 		
 		/** A: create board */
 		board = new Block[nX][nY];
@@ -45,13 +49,17 @@ public class Board {
 			int x = (int)(Math.random() * nX);
 			int y = (int)(Math.random() * nY);
 			board[x][y] = new Block(Block.Type.pickup, Color.gray);
-			users.add(new User(new Point(x,y), colors[i%4]));
+
+			Point initial_position = new Point(x,y);
 
 			while(board[x][y].type != Type.free){
 				x = (int)(Math.random() * nX);
 				y = (int)(Math.random() * nY);
 			}
 
+			Point target_position = new Point(x,y);
+
+			users.add(new User(core, initial_position, target_position, colors[i%4]));
 			board[x][y] = new Block(Type.target_location, colors[i%4]);
 
 		}
@@ -60,7 +68,7 @@ public class Board {
 		/** C: create agents */
 		int nrobots = 10;
 		robots = new ArrayList<Agent>();
-		for(int j=0; j<nrobots; j++) robots.add(new Agent(new Point(0,j), Color.pink, nUsers));
+		for(int j=0; j<nrobots; j++) robots.add(new Agent(core, new Point(0,j), Color.pink, nUsers));
 		
 		objects = new Entity[nX][nY];
 		for(User user : users) objects[user.point.x][user.point.y]= user;
