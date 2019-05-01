@@ -10,7 +10,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Stack;
-import loadingdocks.Block.Shape;
+
+import loadingdocks.Agent.Action;
+import loadingdocks.Agent.Desire;
+import loadingdocks.Block.Type;
 
 /**
  * Agent behavior
@@ -18,40 +21,47 @@ import loadingdocks.Block.Shape;
  */
 public class Agent extends Entity {
 
+	public enum Desire {pickup, drop, stop }
+	public enum Action { moveAhead, pickup, stop, drop, rotateRight, rotateLeft}
 
-public enum Desire { pick, drop }
-	public enum Action { moving, stop, rotateRight, rotateLeft, pickup, drop}
-	
-	
 	public int id ;
-	public static int NUM_USERS;
 	
-	public Type type;
+	public MobType type;
 	public int speed;
 	public int price;
 	public int direction = 90;
-	public Point currentPosition;
-	private Point ahead;
-
-	public int max_users;
-	public ArrayList<User> users = new ArrayList<User>();
+	public User cargo;
 	
-//	public Point initialPoint;
-	public Map<Point,Block> map; //internal map of the warehouse
-	public List<Point> destinations;
+	public Point initialPoint;
+	public int usersDelivered, usersToPickUp;
+	public Map<Point,Block> warehouse; //internal map of the warehouse
+	public List<Point> freeTargetLocations; //free shelves
+	public List<Point> pickUpCells; //pickup cells with boxes
 	
-	//public List<Belief> beliefs;
 	public List<Desire> desires;
 	public AbstractMap.SimpleEntry<Desire,Point> intention;
 	public Queue<Action> plan;
+	//public List<Belief> beliefs;
+	
+	private Point ahead;
+	public Point currentPosition;
+	
+	public int max_users;
+	public ArrayList<User> users = new ArrayList<User>();
+	
+	public Map<Point,Block> map; //internal map of the warehouse
+	public List<Point> destinations;
 	
 	
-	public Agent(Point point, Color color, Type type){ 
+	public Agent(Point point, Color color,MobType type , int countUsers){
 		super(point, color);
 		this.type = type;
-		currentPosition  = point;
-		destinations = new ArrayList<Point>();
-		map = new HashMap<Point,Block>();
+		initialPoint = point;
+		usersDelivered = 0;
+		usersToPickUp = countUsers;
+		freeTargetLocations = new ArrayList<Point>();
+		pickUpCells = new ArrayList<Point>();
+		warehouse = new HashMap<Point,Block>();
 		plan = new LinkedList<Action>();
 	} 
 	
@@ -80,23 +90,23 @@ public enum Desire { pick, drop }
 		
 		desires = new ArrayList<Desire>(); 
 		if(cargo()) desires.add(Desire.drop); 
-		if(boxesOnRamp > 0) desires.add(Desire.grab);
-		if(boxesOnRamp == 0) desires.add(Desire.initialPosition);
+		if(usersToPickUp > 0) desires.add(Desire.pickup);
+		if(usersToPickUp == 0) desires.add(Desire.stop);
 		intention = new AbstractMap.SimpleEntry<>(desires.get(0),null);
 		
 		switch(intention.getKey()) { //high-priority desire
-			case grab : 
-				if(!rampBoxes.isEmpty()) intention.setValue(rampBoxes.get(0));
+			case pickup:
+				if(!pickUpCells.isEmpty()) intention.setValue(pickUpCells.get(0));
 				break;
 			case drop : 
 				Color boxcolor = cargoColor();
-				for(Point shelf : freeShelves) 
-					if(map.get(shelf).color.equals(boxcolor)) {
+				for(Point shelf : freeTargetLocations)
+					if(warehouse.get(shelf).color.equals(boxcolor)) {
 						intention.setValue(shelf);
 						break;
 					}
 				break;
-			case initialPosition : intention.setValue(initialPoint);
+			case stop : intention.setValue(initialPoint);
 		}
 	}
 
@@ -104,15 +114,15 @@ public enum Desire { pick, drop }
 		plan = new LinkedList<Action>();
 		if(intention.getValue()==null) return;
 		switch(intention.getKey()) {
-			case grab : 
+			case pickup:
 				plan = buildPathPlan(point,intention.getValue());
-				plan.add(Action.grab);
+				plan.add(Action.pickup);
 				break;
 			case drop : 
 				plan = buildPathPlan(point,intention.getValue());
 				plan.add(Action.drop);
 				break;
-			case initialPosition : 
+			case stop : 
 				plan = buildPathPlan(point,intention.getValue());
 				plan.add(Action.moveAhead);
 		}
@@ -126,7 +136,7 @@ public enum Desire { pick, drop }
 	private boolean isPlanSound(Action action) {
 		switch(action) {
 			case moveAhead : return isFreeCell();
-			case grab : return isBoxAhead();
+			case pickup: return isBoxAhead();
 			case drop : return isShelf() && !isBoxAhead() && shelfColor().equals(cargoColor());
 			default : return true;
 		}		
@@ -137,21 +147,21 @@ public enum Desire { pick, drop }
 			case moveAhead : moveAhead(); return;
 			case rotateRight : rotateRight(); return;
 			case rotateLeft : rotateLeft(); return;
-			case grab : grabBox(); return;
+			case pickup: grabBox(); return;
 			case drop : dropBox(); return;
 		}		
 	}
 
 	private boolean impossibleIntention() {
-		if(intention.getKey().equals(Desire.grab)) return boxesOnRamp == 0;
+		if(intention.getKey().equals(Desire.pickup)) return usersToPickUp == 0;
 		else return false;
 	}
 
 	private boolean succeededIntention() {
 		switch(intention.getKey()) {
-			case grab : return cargo();
+			case pickup: return cargo();
 			case drop : return !cargo();
-			case initialPosition : return point.equals(initialPoint);
+			case stop : return point.equals(initialPoint);
 		}
 		return false;
 	}
@@ -186,25 +196,25 @@ public enum Desire { pick, drop }
 		else Board.sendMessage(ahead, cellType(), cellColor(), !isBoxAhead());
 	}
 
-	public void receiveMessage(Point point, Shape shape, Color color, Boolean free) {
-		map.put(point, new Block(shape,color));
-		if(shape.equals(Shape.shelf)) {
-			if(free) freeShelves.add(point);
-			else freeShelves.remove(point);
+	public void receiveMessage(Point point, Type type, Color color, Boolean free) {
+		warehouse.put(point, new Block(type,color));
+		if(type.equals(Type.target_location)) {
+			if(free) freeTargetLocations.add(point);
+			else freeTargetLocations.remove(point);
 		}
-		else if(shape.equals(Shape.ramp)) {
-			if(free) rampBoxes.remove(point);
-			else rampBoxes.add(point);
+		else if(type.equals(Type.pickup)) {
+			if(free) pickUpCells.remove(point);
+			else pickUpCells.add(point);
 		}
 	}
 	
 	public void receiveMessage(Action action, Point pt) {
 		if(action.equals(Action.drop)) {
-			boxesOnShelves++;
-			freeShelves.remove(pt);
-		} else if(action.equals(Action.grab)) {
-			boxesOnRamp--;
-			rampBoxes.remove(pt);
+			usersDelivered++;
+			freeTargetLocations.remove(pt);
+		} else if(action.equals(Action.pickup)) {
+			usersToPickUp--;
+			pickUpCells.remove(pt);
 		}
 	} 
 
@@ -275,18 +285,18 @@ public enum Desire { pick, drop }
 	  return cargo.color;
 	}
 
-	/* Return the color of the shelf ahead or 0 otherwise */
+	/* Return the color of the target_location ahead or 0 otherwise */
 	public Color shelfColor(){
 		return Board.getBlock(ahead).color;
 	}
 
-	/* Check if the cell ahead is floor (which means not a wall, not a shelf nor a ramp) and there are any robot there */
+	/* Check if the cell ahead is floor (which means not a wall, not a target_location nor a pickup) and there are any robot there */
 	public boolean isFreeCell() {
 	  return isRoomFloor() && Board.getEntity(ahead)==null;
 	}
 
 	public boolean isRoomFloor() {
-		return Board.getBlock(ahead).shape.equals(Shape.free);
+		return Board.getBlock(ahead).type.equals(Type.free);
 	}
 	
 	/* Check if the cell ahead contains a box */
@@ -296,8 +306,8 @@ public enum Desire { pick, drop }
 	}
 
 	/* Return the type of cell */
-	public Shape cellType() {
-	  return Board.getBlock(ahead).shape;
+	public Type cellType() {
+	  return Board.getBlock(ahead).type;
 	}
 
 	/* Return the color of cell */
@@ -305,16 +315,16 @@ public enum Desire { pick, drop }
 	  return Board.getBlock(ahead).color;
 	}
 
-	/* Check if the cell ahead is a shelf */
+	/* Check if the cell ahead is a target_location */
 	public boolean isShelf() {
 	  Block block = Board.getBlock(ahead);
-	  return block.shape.equals(Shape.shelf);
+	  return block.type.equals(Type.target_location);
 	}
 
-	/* Check if the cell ahead is a ramp */
+	/* Check if the cell ahead is a pickup */
 	public boolean isRamp(){
 	  Block block = Board.getBlock(ahead);
-	  return block.shape.equals(Shape.ramp);
+	  return block.type.equals(Type.pickup);
 	}
 
 	/* Check if the cell ahead is a wall */
@@ -327,7 +337,7 @@ public enum Desire { pick, drop }
 		return x<0 || y<0 || x>=Board.nX || y>=Board.nY;
 	}
 	
-	/* Check if we can drop a box in the shelf ahead */
+	/* Check if we can drop a box in the target_location ahead */
 	private boolean canDropBox() {
 		return isShelf() && !isBoxAhead() && cargo() && shelfColor().equals(cargoColor());
 	}
@@ -356,20 +366,20 @@ public enum Desire { pick, drop }
 	/* Move agent forward */
 	public void moveAhead() {
 		Board.updateEntityPosition(point,ahead);
-		if(cargo()) cargo.moveBox(ahead);
+		if(cargo()) cargo.moveUser(ahead);
 		point = ahead;
 	}
 
 	/* Cargo box */
 	public void grabBox() {
 	  cargo = (User) Board.getEntity(ahead);
-	  cargo.grabBox(point);
-	  Board.sendMessage(Action.grab, ahead); 
+	  cargo.pickupUser(point);
+	  Board.sendMessage(Action.pickup, ahead);
 	}
 
 	/* Drop box */
 	public void dropBox() {
-		cargo.dropBox(ahead);
+		cargo.dropUser(ahead);
 	    cargo = null;
 		Board.sendMessage(Action.drop, ahead); 
 	}
@@ -420,7 +430,7 @@ public enum Desire { pick, drop }
 	        for (int i = 0; i < 4; i++) { 
 	            int x = pt.x + row[i], y = pt.y + col[i]; 
     	        if(x==dest.x && y==dest.y) return new Node(dest,curr); 
-	            if(!isWall(x,y) && !map.containsKey(new Point(x,y)) && !visited[x][y]){ 
+	            if(!isWall(x,y) && !warehouse.containsKey(new Point(x,y)) && !visited[x][y]){ 
 	                visited[x][y] = true; 
 	    	        q.add(new Node(new Point(x,y), curr)); 
 	            } 

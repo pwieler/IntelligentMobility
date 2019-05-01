@@ -4,12 +4,12 @@ import java.awt.Color;
 
 public class Block {
 
-	public enum Shape { free, building }
-	public Shape shape;
+	public enum Type { target_location,free, building,pickup }
+	public Type type;
 	public Color color;
 	
-	public Block(Shape shape, Color color) {
-		this.shape = shape;
+	public Block(Type type, Color color) {
+		this.type = type;
 		this.color = color;
 	}
 
