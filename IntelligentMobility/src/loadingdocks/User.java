@@ -14,14 +14,13 @@ public class User extends Entity {
 	Request myRequest;
 
 
-	public User(Core core, Point init, Point target, Color color) {
+	public User(Point init, Point target, Color color) {
 		super(init, color);
 
-		this.core = core;
 		target_position = target;
 		ID = id_count++;
 
-		core.registerToCore(this);
+		Core.registerToCore(this);
 		this.sendRequest();
 	}
 	

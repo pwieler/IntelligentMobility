@@ -21,22 +21,26 @@ public class Board {
 	private static Entity[][] objects;
 	private static List<Agent> robots;
 	private static List<User> users;
-	private static Core core;
 	
 	
 	/****************************
 	 ***** A: SETTING BOARD *****
 	 ****************************/
+
+	public Board(){
+
+		this.initialize();
+
+	}
+
+
 	
-	public static void initialize() {
+	public void initialize() {
 
-		core = new Core();
-
-		
 		/** A: create board */
 		board = new Block[nX][nY];
-		for(int i=0; i<nX; i++) 
-			for(int j=0; j<nY; j++) 
+		for(int i=0; i<nX; i++)
+			for(int j=0; j<nY; j++)
 				board[i][j] = new Block(Block.Type.free, Color.lightGray);
 
 
@@ -59,20 +63,22 @@ public class Board {
 
 			Point target_position = new Point(x,y);
 
-			users.add(new User(core, initial_position, target_position, colors[i%4]));
+			users.add(new User(initial_position, target_position, colors[i%4]));
 			board[x][y] = new Block(Type.target_location, colors[i%4]);
 
 		}
 
-		
+
 		/** C: create agents */
 		int nrobots = 10;
 		robots = new ArrayList<Agent>();
-		for(int j=0; j<nrobots; j++) robots.add(new Agent(core, new Point(0,j), Color.pink, nUsers));
-		
+		for(int j=0; j<nrobots; j++) robots.add(new Agent(new Point(0,j), Color.pink, nUsers));
+
 		objects = new Entity[nX][nY];
 		for(User user : users) objects[user.point.x][user.point.y]= user;
 		for(Agent agent : robots) objects[agent.point.x][agent.point.y]=agent;
+		
+
 	}
 	
 	/****************************
@@ -99,36 +105,11 @@ public class Board {
 	/***********************************
 	 ***** C: ELICIT AGENT ACTIONS *****
 	 ***********************************/
-	
-	private static RunThread runThread;
+
 	private static GUI GUI;
 
-	public static class RunThread extends Thread {
-		
-		int time;
-		
-		public RunThread(int time){
-			this.time = time*time;
-		}
-		
-	    public void run() {
-	    	while(true){
-	    		step();
-				try {
-					sleep(time);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-	    	}
-	    }
-	}
-	
-	public static void run(int time) {
-		Board.runThread = new RunThread(time);
-		Board.runThread.start();
-	}
 
-	public static void reset() {
+	public void reset() {
 		removeObjects();
 		initialize();
 		GUI.displayBoard();
@@ -151,10 +132,6 @@ public class Board {
 		GUI.update();
 	}
 
-	public static void stop() {
-		runThread.interrupt();
-		runThread.stop();
-	}
 
 	public static void displayObjects(){
 		for(Agent agent : robots) GUI.displayObject(agent);

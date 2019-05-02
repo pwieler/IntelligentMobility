@@ -31,6 +31,7 @@ public class GUI extends JFrame {
 	static JTextField speed;
 	static JPanel boardPanel;
 	static JButton run, reset, step;
+	Board board;
 	private int nX, nY;
 
 	public class Cell extends JPanel {
@@ -65,11 +66,13 @@ public class GUI extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
 
-		Board.initialize();
-		Board.associateGUI(this);
+		board = new Board();
+		Core.initialize(board);
 
-		nX = Board.nX;
-		nY = Board.nY;
+		board.associateGUI(this);
+
+		nX = board.nX;
+		nY = board.nY;
 
 		setSize(60*nY, 70*nX);
 		add(createButtonPanel());
@@ -87,7 +90,7 @@ public class GUI extends JFrame {
 				boardPanel.add(new Cell());
 		
 		displayBoard();
-		Board.displayObjects();
+		board.displayObjects();
 		update();
 		add(boardPanel);
 	}
@@ -96,7 +99,7 @@ public class GUI extends JFrame {
 		for(int i=0; i<nX; i++){
 			for(int j=0; j<nY; j++){
 				int row=nY-j-1, col=i;
-				Block block = Board.getBlock(new Point(i,j));
+				Block block = board.getBlock(new Point(i,j));
 				JPanel p = ((JPanel)boardPanel.getComponent(row*nX+col));
 				p.setBackground(block.color);
 				p.setBorder(BorderFactory.createLineBorder(Color.white));
@@ -131,15 +134,15 @@ public class GUI extends JFrame {
 		panel.add(step);
 		step.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if(run.getText().equals("Run")) Board.step();
-				else Board.stop();
+				if(run.getText().equals("Run")) board.step();
+				else Core.stop();
 			}
 		});
 		reset = new JButton("Reset");
 		panel.add(reset);
 		reset.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				Board.reset();
+				Core.reset();
 			}
 		});
 		run = new JButton("Run");
@@ -156,11 +159,11 @@ public class GUI extends JFrame {
 						JOptionPane.showMessageDialog(null, output, "Error", JOptionPane.PLAIN_MESSAGE);
 					}
 					if(time>0){
-						Board.run(time);
+						Core.run(time);
 	 					run.setText("Stop");						
 					}
  				} else {
-					Board.stop();
+					Core.stop();
  					run.setText("Run");
  				}
 			}

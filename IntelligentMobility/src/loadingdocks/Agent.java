@@ -18,7 +18,6 @@ import loadingdocks.Block.Type;
  */
 public class Agent extends Entity {
 
-	private Core core;
 	static int id_count = 0;
 	int ID;
 
@@ -41,12 +40,11 @@ public class Agent extends Entity {
 	
 	private Point ahead;
 	
-	public Agent(Core core, Point point, Color color, int countUsers){
+	public Agent(Point point, Color color, int countUsers){
 		super(point, color);
 
-		this.core = core;
 		ID = id_count++;
-		core.registerToCore(this);
+		Core.registerToCore(this);
 		
 		initialPoint = point;
 		usersDelivered = 0;
