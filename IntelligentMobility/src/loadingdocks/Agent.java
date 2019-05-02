@@ -53,7 +53,20 @@ public class Agent extends Entity {
 		pickUpCells = new ArrayList<Point>();
 		warehouse = new HashMap<Point,Block>();
 		plan = new LinkedList<Action>();
-	} 
+	}
+
+
+	// Core communication
+
+	public void receiveRequests(List<Request> requestList){
+
+		// do something :)
+
+		// choose a request and make an offer by:
+		//int chosen_request = 0;
+		//requestList.get(chosen_request).appendOffer(ID);
+
+	}
 	
 	/**********************
 	 **** A: decision ***** 
