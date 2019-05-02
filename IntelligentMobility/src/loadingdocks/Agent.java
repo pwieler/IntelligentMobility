@@ -25,7 +25,9 @@ public class Agent extends Entity {
 	public enum Desire {pickup, drop, initialPosition }
 	public enum Action { moveAhead, pickup, drop, rotateRight, rotateLeft}
 
-	
+	public MobType type;
+	public int speed;
+	public int price;
 	public int direction = 90;
 	public User cargo;
 	
@@ -41,9 +43,10 @@ public class Agent extends Entity {
 	
 	private Point ahead;
 	
-	public Agent(Core core, Point point, Color color, int countUsers){
+	public Agent(Core core, Point point, Color color, MobType type, int countUsers){
 		super(point, color);
-
+		
+		this.type = type;
 		this.core = core;
 		ID = id_count++;
 		core.registerToCore(this);
