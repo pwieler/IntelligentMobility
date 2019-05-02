@@ -69,7 +69,7 @@ public class Agent extends Entity {
 		float maxLength = 0.0f;
 		float currentLength;
 		Request maxPaidTime = null;
-		for (var request : requestList) {
+		for (Request request : requestList) {
 			float currentDist = (float)this.point.distance(request.initPosition);
 			if (currentDist < minDist) {
 				minDistToPickup = request;
@@ -95,7 +95,7 @@ public class Agent extends Entity {
 		float firstPickupToFirstDropDist = pathLength(shortestPath(oldRequest.initPosition,oldRequest.targetPosition));
 		Request bestFittingRequest = null;
 		float minIncludingNewRequest = Float.MAX_VALUE;
-		for (var newRequest : requestList) {
+		for (Request newRequest : requestList) {
 			float firstPickupToSecondPickupDist = pathLength(shortestPath(oldRequest.initPosition,newRequest.initPosition));
 			float secondPickupToFirstDropDist = pathLength(shortestPath(newRequest.initPosition,oldRequest.targetPosition));
 			float includingNewPickup = firstPickupToSecondPickupDist + secondPickupToFirstDropDist;
@@ -115,8 +115,8 @@ public class Agent extends Entity {
 		Request first = null;
 		Request second = null;
 		float distanceSharing = 0.0f;
-		for(var request1 : requestList) {
-			for(var request2 : requestList) {
+		for(Request request1 : requestList) {
+			for(Request request2 : requestList) {
 				//TODO still assume that (first pickup, second pickup, first drop, second drop) is optimal
 				float secondPickupToFirstDropDist = pathLength(shortestPath(request2.initPosition,request1.targetPosition));
 				if(secondPickupToFirstDropDist > distanceSharing) {
@@ -144,13 +144,6 @@ public class Agent extends Entity {
 	/**********************
 	 **** A: decision ***** 
 	 **********************/
-
-	private List<Request> filterAndAcceptRequests(List<Request> availableRequests) {
-		//minimize "unpaid" time: sort to minimum pickup distance
-		availableRequests.sort((Request r1, Request r2) -> {
-			return r1.initPosition
-		});
-	}
 
 	public void agentDecision() {
 
