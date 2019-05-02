@@ -1,6 +1,8 @@
 package loadingdocks;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,12 +40,27 @@ public class Core {
         requests.put(r.ID, r);
     }
 
+    public static void broadcastRequests(){
+        List<Request> r_list = new ArrayList<Request>(requests.values());
+
+        for(Agent a:new ArrayList<Agent>(agents.values())){
+            a.receiveRequests(r_list);
+        }
+    }
+
 
     /***********************************
      ***** C: ELICIT AGENT ACTIONS *****
      ***********************************/
 
     private static RunThread runThread;
+
+    private static void step(){
+        broadcastRequests();
+    }
+
+
+    // Threading stuff
 
     public static class RunThread extends Thread {
 
@@ -56,6 +73,7 @@ public class Core {
         public void run() {
             while(true){
                 board.step();
+                step();
                 try {
                     sleep(time);
                 } catch (InterruptedException e) {
