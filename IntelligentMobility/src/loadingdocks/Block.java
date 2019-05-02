@@ -4,7 +4,7 @@ import java.awt.Color;
 
 public class Block {
 
-	public enum Type {target_location, pickup, free }
+	public enum Type {target_location, pickup,building, free }
 	public Type type;
 	public Color color;
 	
