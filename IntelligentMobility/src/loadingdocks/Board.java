@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
-import loadingdocks.Agent.Action;
-import loadingdocks.Agent.Node;
 import loadingdocks.Block.Type;
 
 /**
@@ -121,7 +119,7 @@ public class Board {
 				
 			}
 			if(board[rX][rY].color!=Color.gray || (type.equals(MobType.B) && closeToStreet(rX,rY))) {
-				vehicles.add(new Agent(new Point(rX,rY), yor,type,maxUsers));
+				vehicles.add(new Agent(new Point(rX,rY), yor, type, maxUsers, this));
 			}
 		}
 		objects = new Entity[nX][nY];
@@ -178,17 +176,9 @@ public class Board {
 		GUI.update();
 	}
 
-	public static void sendMessage(Point point, Type type, Color yor, boolean free) {
-		for(Agent a : vehicles) a.receiveMessage(point, type, yor, free);		
-	}
-
-	public static void sendMessage(Action action, Point pt) {
-		for(Agent a : vehicles) a.receiveMessage(action, pt);		
-	}
-
 	public static void step() {
 		removeObjects();
-		for(Agent a : vehicles) a.agentDecision();
+		//for(Agent a : vehicles) a.agentDecision();
 		displayObjects();
 		GUI.update();
 	}
@@ -245,5 +235,14 @@ public class Board {
 	        }
 	    }
 	    return null; //destination not reached
+	}
+
+	float pathLength(Node path) {
+		float result = 0.0f;
+		while (path.parent != null) {
+				result += (float)path.point.distance(path.parent.point);
+				path = path.parent;
+		}
+		return result;
 	}
 }

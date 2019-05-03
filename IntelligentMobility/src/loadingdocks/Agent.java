@@ -20,11 +20,20 @@ public class Agent extends Entity {
 
 	static int id_count = 0;
 	int ID;
+	private MobType type;
+	private Board referenceToBoard;
+	public int direction = 90;
+	public int usersDelivered, usersToPickUp;
 
-	public Agent(Point point, Color color, int countUsers){
+
+
+	public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference){
 		super(point, color);
 		ID = id_count++;
 		Core.registerToCore(this);
+
+		type=pType;
+		this.referenceToBoard = boardReference;
 	}
 
 
@@ -62,12 +71,12 @@ public class Agent extends Entity {
 		//compare old route "firstPickup,firstDrop" with new route "firstPickup,secondPickup,firstDrop,secondDrop"
 		//TODO for simplicity assume this new route is the shortest possible one (not e.g. "secondPickup,firstPickup,firstDrop,secondDrop")
 		//float myPosToFirstPickupDist = pathLength(shortestPath(point,oldRequest.initPosition));
-		float firstPickupToFirstDropDist = pathLength(shortestPath(oldRequest.initPosition,oldRequest.targetPosition));
+		float firstPickupToFirstDropDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(oldRequest.initPosition,oldRequest.targetPosition));
 		Request bestFittingRequest = null;
 		float minIncludingNewRequest = Float.MAX_VALUE;
 		for (Request newRequest : requestList) {
-			float firstPickupToSecondPickupDist = pathLength(shortestPath(oldRequest.initPosition,newRequest.initPosition));
-			float secondPickupToFirstDropDist = pathLength(shortestPath(newRequest.initPosition,oldRequest.targetPosition));
+			float firstPickupToSecondPickupDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(oldRequest.initPosition,newRequest.initPosition));
+			float secondPickupToFirstDropDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(newRequest.initPosition,oldRequest.targetPosition));
 			float includingNewPickup = firstPickupToSecondPickupDist + secondPickupToFirstDropDist;
 			if( includingNewPickup < minIncludingNewRequest) { // found a more fitting route combining the two requests
 				bestFittingRequest = newRequest;
@@ -88,7 +97,7 @@ public class Agent extends Entity {
 		for(Request request1 : requestList) {
 			for(Request request2 : requestList) {
 				//TODO still assume that (first pickup, second pickup, first drop, second drop) is optimal
-				float secondPickupToFirstDropDist = pathLength(shortestPath(request2.initPosition,request1.targetPosition));
+				float secondPickupToFirstDropDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(request2.initPosition,request1.targetPosition));
 				if(secondPickupToFirstDropDist > distanceSharing) {
 					first = request1;
 					second = request2;
@@ -101,15 +110,6 @@ public class Agent extends Entity {
 		first.appendOffer(this.ID);
 		second.appendOffer(this.ID);
 
-	}
-
-	float pathLength(Node path) {
-		float result = 0.0f;
-		while (path.parent != null) {
-			result += (float)path.point.distance(path.parent.point);
-			path = path.parent;
-		}
-		return result;
 	}
 
 }
