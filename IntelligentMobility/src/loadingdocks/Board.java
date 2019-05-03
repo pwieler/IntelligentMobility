@@ -36,9 +36,7 @@ public class Board {
 
 
 	public Board(){
-
 		this.initialize();
-
 	}
 
 
@@ -202,7 +200,7 @@ public class Board {
 	}
 	
 	//For queue used in BFS 
-		public class Node { 
+		public static class Node { 
 		    Point point;   
 		    Node parent; //cell's distance to source 
 		    public Node(Point point, Node parent) {
@@ -214,8 +212,8 @@ public class Board {
 		    }
 		} 
 		
-	public Node shortestPath(Point src, Point dest) { 
-	    boolean[][] visited = new boolean[100][100]; 
+	public static Node shortestPath(Point src, Point dest) { 
+	    boolean[][] visited = new boolean[nX][nY]; 
 	    visited[src.x][src.y] = true; 
 	    Queue<Node> q = new LinkedList<Node>(); 
 	    q.add(new Node(src,null)); //enqueue source cell 
@@ -227,11 +225,17 @@ public class Board {
 	    while (!q.isEmpty()){//do a BFS 
 	        Node curr = q.remove(); //dequeue the front cell and enqueue its adjacent cells
 	        Point pt = curr.point; 
-			//System.out.println(">"+pt);
+			System.out.println(">"+pt);
 	        for (int i = 0; i < 4; i++) { 
-	            int x = pt.x + row[i], y = pt.y + col[i]; 
+	        	int x=pt.x,y=pt.y;
+	        	if(pt.x+ row[i]<nX && pt.x+ row[i]>0) {
+	        		x = pt.x + row[i];
+	        	}
+	        	if(pt.y+ col[i]<nY && pt.y+ col[i]>0) {
+	        		y = pt.y + col[i]; 
+	        	}
     	        if(x==dest.x && y==dest.y) return new Node(dest,curr); 
-	            if(board[x][y].color==Color.gray  && !visited[x][y]){ 
+	            if(board[x][y].color!=Color.gray  && !visited[x][y]){ 
 	                visited[x][y] = true; 
 	    	        q.add(new Node(new Point(x,y), curr)); 
 	            } 
@@ -242,9 +246,11 @@ public class Board {
 
 	float pathLength(Node path) {
 		float result = 0.0f;
-		while (path.parent != null) {
-			result += (float)path.point.distance(path.parent.point);
-			path = path.parent;
+		if(path!=null){
+			while (path.parent != null) {
+				result += (float)path.point.distance(path.parent.point);
+				path = path.parent;
+			}
 		}
 		return result;
 	}
