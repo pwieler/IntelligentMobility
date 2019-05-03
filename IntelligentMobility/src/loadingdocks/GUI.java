@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class GUI extends JFrame {
 	static JButton run, reset, step;
 	Board board;
 	private int nX, nY;
+	
 
 	public class Cell extends JPanel {
 
@@ -46,15 +48,15 @@ public class GUI extends JFrame {
             for(Entity entity : entities) {
 	            g.setColor(entity.color);
 	            if(entity instanceof User) {
-	            	g.fillRect(15, 15, 20, 20);
+	            	g.fillRect(8, 8, 13, 13);
 		            g.setColor(Color.white);
-	            	g.drawRect(15, 15, 20, 20);
+	            	g.drawRect(8, 8, 13, 13);
 	            } else {
 	        		switch(((Agent)entity).direction) {
-		    			case 0:  g.fillPolygon(new int[]{10, 25, 40}, new int[]{40, 10, 40}, 3); break;
-		    			case 90: g.fillPolygon(new int[]{10, 40, 10}, new int[]{10, 25, 40}, 3); break;
-		    			case 180:g.fillPolygon(new int[]{10, 40, 25}, new int[]{10, 10, 40}, 3); break;
-		    			default: g.fillPolygon(new int[]{10, 40, 40}, new int[]{25, 10, 40}, 3); 
+		    			case 0:  g.fillPolygon(new int[]{10, 20, 30}, new int[]{25, 0, 25}, 3); break;
+		    			case 90: g.fillPolygon(new int[]{0, 25, 0}, new int[]{10, 20, 30}, 3); break;
+		    			case 180:g.fillPolygon(new int[]{0, 20, 10}, new int[]{0, 0, 25}, 3); break;
+		    			default: g.fillPolygon(new int[]{0, 25, 25}, new int[]{10, 20, 0}, 3); 
 		    		}
 	            }
             }
@@ -74,13 +76,13 @@ public class GUI extends JFrame {
 		nX = board.nX;
 		nY = board.nY;
 
-		setSize(60*nY, 70*nX);
+		setSize(40*nY, 50*nX);
 		add(createButtonPanel());
 
 
 		
 		boardPanel = new JPanel();
-		boardPanel.setSize(new Dimension(50*nY,50*nX));
+		boardPanel.setSize(new Dimension(30*nY,30*nX));
 		boardPanel.setLocation(new Point(20,60));
 		
 

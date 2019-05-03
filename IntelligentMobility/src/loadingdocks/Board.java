@@ -3,10 +3,11 @@ package loadingdocks;
 import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 
-import loadingdocks.Agent.Action;
 import loadingdocks.Block.Type;
 
 /**
@@ -105,20 +106,22 @@ public class Board {
 			int rX = (int) rXd;
 			int rY = (int) rYd;
 			MobType type = MobType.values()[new Random().nextInt(MobType.values().length)];
-			Color color = Color.pink;
+
+			Color yor = Color.pink;
 			int maxUsers = 1;
 			switch(type) {
 			case A:
-				color = Color.yellow;
+				yor = Color.yellow;
 				maxUsers=4;
 				break;
 			case B:
-				color = Color.blue;
+				yor = Color.blue;
 				break;
 				
 			}
 			if(board[rX][rY].color!=Color.gray || (type.equals(MobType.B) && closeToStreet(rX,rY))) {
-				vehicles.add(new Agent(new Point(rX,rY), color,type,maxUsers));
+				vehicles.add(new Agent(new Point(rX,rY), yor,type,maxUsers,this));
+
 			}
 		}
 		objects = new Entity[nX][nY];
@@ -175,17 +178,9 @@ public class Board {
 		GUI.update();
 	}
 
-	public static void sendMessage(Point point, Type type, Color color, boolean free) {
-		for(Agent a : vehicles) a.receiveMessage(point, type, color, free);		
-	}
-
-	public static void sendMessage(Action action, Point pt) {
-		for(Agent a : vehicles) a.receiveMessage(action, pt);		
-	}
-
 	public static void step() {
 		removeObjects();
-		for(Agent a : vehicles) a.agentDecision();
+//		for(Agent a : vehicles) a.agentDecision();
 		displayObjects();
 		GUI.update();
 	}
@@ -204,4 +199,53 @@ public class Board {
 	public static void associateGUI(GUI graphicalInterface) {
 		GUI = graphicalInterface;
 	}
+	
+	//For queue used in BFS 
+		public class Node { 
+		    Point point;   
+		    Node parent; //cell's distance to source 
+		    public Node(Point point, Node parent) {
+		    	this.point = point;
+		    	this.parent = parent;
+		    }
+		    public String toString() {
+		    	return "("+point.x+","+point.y+")";
+		    }
+		} 
+		
+	public Node shortestPath(Point src, Point dest) { 
+	    boolean[][] visited = new boolean[100][100]; 
+	    visited[src.x][src.y] = true; 
+	    Queue<Node> q = new LinkedList<Node>(); 
+	    q.add(new Node(src,null)); //enqueue source cell 
+	    
+		//access the 4 neighbours of a given cell 
+		int row[] = {-1, 0, 0, 1}; 
+		int col[] = {0, -1, 1, 0}; 
+	     
+	    while (!q.isEmpty()){//do a BFS 
+	        Node curr = q.remove(); //dequeue the front cell and enqueue its adjacent cells
+	        Point pt = curr.point; 
+			//System.out.println(">"+pt);
+	        for (int i = 0; i < 4; i++) { 
+	            int x = pt.x + row[i], y = pt.y + col[i]; 
+    	        if(x==dest.x && y==dest.y) return new Node(dest,curr); 
+	            if(board[x][y].color==Color.gray  && !visited[x][y]){ 
+	                visited[x][y] = true; 
+	    	        q.add(new Node(new Point(x,y), curr)); 
+	            } 
+	        }
+	    }
+	    return null; //destination not reached
+	}
+
+	float pathLength(Node path) {
+		float result = 0.0f;
+		while (path.parent != null) {
+			result += (float)path.point.distance(path.parent.point);
+			path = path.parent;
+		}
+		return result;
+	}
+
 }

@@ -8,6 +8,8 @@ import java.util.*;
 public class Core {
     // Implement subscription pattern
 
+    // changed this
+
     static Map<Integer, Agent> agents = new HashMap<Integer, Agent>();
     static Map<Integer, User> users = new HashMap<Integer, User>();
     static List<Request> requests = new LinkedList<Request>();
