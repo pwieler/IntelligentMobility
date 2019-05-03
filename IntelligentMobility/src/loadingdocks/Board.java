@@ -93,7 +93,8 @@ public class Board {
 			double dYd = Math.random()*nY;
 			int dX = (int) dXd;
 			int dY = (int) dYd;
-			if(board[rX][rY].color==Color.gray && closeToStreet(rX,rY)){
+			if(board[rX][rY].color!=Color.gray ) {
+					//&& closeToStreet(rX,rY)){
 				users.add(new User(new Point(rX,rY), new Point(dX,dY), Color.RED));
 			}
 		}
