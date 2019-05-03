@@ -6,7 +6,6 @@ import java.util.List;
 
 public class User extends Entity {
 
-	private Core core;
 	static int id_count = 0;
 	int ID;
 
@@ -30,11 +29,31 @@ public class User extends Entity {
 
 	public void sendRequest(){
 		myRequest = new Request(ID,point,target_position);
-		core.appendRequest(myRequest);
+		Core.appendRequest(myRequest);
 	}
 
-	public void receiveOffers(List<Offer> offers){
 
+	public boolean processOffers() {
+
+		boolean match_state = false;
+
+		try{
+
+			int chosen_agent_id = myRequest.offers.get(0);
+			match_state = Core.agents.get(chosen_agent_id).confirmMatch(myRequest);
+
+			if(!match_state){
+				myRequest.offers.remove(chosen_agent_id);
+			}
+
+			// if no match --> take next offer --> until match!
+
+		}catch (Exception e){
+
+		}
+
+
+		return match_state;
 	}
 
 	public void pickUpUser(Point newpoint) {
@@ -50,4 +69,6 @@ public class User extends Entity {
 	public void moveUser(Point newpoint) {
 		point = newpoint;
 	}
+
+
 }

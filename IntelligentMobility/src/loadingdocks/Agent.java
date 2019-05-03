@@ -21,6 +21,8 @@ public class Agent extends Entity {
 	static int id_count = 0;
 	int ID;
 
+	public enum AGENT_STATE {IDLE,OCCUPIED,AWAITING_CONFIRMATION};
+
 	public enum Desire {pickup, drop, initialPosition }
 	public enum Action { moveAhead, pickup, drop, rotateRight, rotateLeft}
 
@@ -39,6 +41,8 @@ public class Agent extends Entity {
 	public List<Desire> desires;
 	public AbstractMap.SimpleEntry<Desire,Point> intention;
 	public Queue<Action> plan;
+
+	public AGENT_STATE state = AGENT_STATE.IDLE;
 	
 	private Point ahead;
 	
@@ -63,78 +67,96 @@ public class Agent extends Entity {
 
 	// Core communication
 
+	public boolean confirmMatch(Request user_request){
+
+		if(state == AGENT_STATE.OCCUPIED){
+			return false;
+		}else{
+			user_request.match(this.ID);
+			state = AGENT_STATE.OCCUPIED;
+			return true;
+		}
+	}
 
 	public void receiveRequests(List<Request> requestList) {
 
-		//if agent is idle (state remains unimplemented), accept request based on the following
-		//minimize "unpaid" time: sort to minimum pickup distance
-		Request minDistToPickup = null;
-		float minDist = Float.MAX_VALUE;
-		//OR maximize guaranteed paid time
-		float maxLength = 0.0f;
-		float currentLength;
-		Request maxPaidTime = null;
-		for (Request request : requestList) {
-			float currentDist = (float)this.point.distance(request.initPosition);
-			if (currentDist < minDist) {
-				minDistToPickup = request;
-				minDist = currentDist;
-			}
-			currentLength = (float) request.initPosition.distance(request.targetPosition);
-			if(currentLength > maxLength) {
-				maxLength = currentLength;
-				maxPaidTime = request;
-			}
-		}
-		//TODO accept them both?
-		minDistToPickup.appendOffer(this.ID	);
-		maxPaidTime.appendOffer(this.ID);
-
-		//assuming the agent already has an accepted request and thinks about accepting another one:
-		Request oldRequest = new Request(Integer.MAX_VALUE,new Point(),new Point()); //TODO assume this request is the current one
-
-		//"protect" old request: compare old route to the one including the new user
-		//compare old route "firstPickup,firstDrop" with new route "firstPickup,secondPickup,firstDrop,secondDrop"
-		//TODO for simplicity assume this new route is the shortest possible one (not e.g. "secondPickup,firstPickup,firstDrop,secondDrop")
-		//float myPosToFirstPickupDist = pathLength(shortestPath(point,oldRequest.initPosition));
-		float firstPickupToFirstDropDist = pathLength(shortestPath(oldRequest.initPosition,oldRequest.targetPosition));
-		Request bestFittingRequest = null;
-		float minIncludingNewRequest = Float.MAX_VALUE;
-		for (Request newRequest : requestList) {
-			float firstPickupToSecondPickupDist = pathLength(shortestPath(oldRequest.initPosition,newRequest.initPosition));
-			float secondPickupToFirstDropDist = pathLength(shortestPath(newRequest.initPosition,oldRequest.targetPosition));
-			float includingNewPickup = firstPickupToSecondPickupDist + secondPickupToFirstDropDist;
-			if( includingNewPickup < minIncludingNewRequest) { // found a more fitting route combining the two requests
-				bestFittingRequest = newRequest;
-				minIncludingNewRequest = includingNewPickup;
-			}
-		}
-		float aThreshold = 100.0f; //TODO define threshold somewhere else
-		//found the best fitting new request. is the first user not annoyed ?
-		if( minIncludingNewRequest - firstPickupToFirstDropDist <  aThreshold) {
-			bestFittingRequest.appendOffer(this.ID); //TODO
-		}
-
-		//do not protect old request: just find the best combination of 2 (or n?),
-		//with best combination meaning maximum occupancy
-		Request first = null;
-		Request second = null;
-		float distanceSharing = 0.0f;
-		for(Request request1 : requestList) {
-			for(Request request2 : requestList) {
-				//TODO still assume that (first pickup, second pickup, first drop, second drop) is optimal
-				float secondPickupToFirstDropDist = pathLength(shortestPath(request2.initPosition,request1.targetPosition));
-				if(secondPickupToFirstDropDist > distanceSharing) {
-					first = request1;
-					second = request2;
-					distanceSharing = secondPickupToFirstDropDist;
+		if(state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
+			//if agent is idle (state remains unimplemented), accept request based on the following
+			//minimize "unpaid" time: sort to minimum pickup distance
+			Request minDistToPickup = null;
+			float minDist = Float.MAX_VALUE;
+			//OR maximize guaranteed paid time
+			float maxLength = 0.0f;
+			float currentLength;
+			Request maxPaidTime = null;
+			for (Request request : requestList) {
+				float currentDist = (float)this.point.distance(request.initPosition);
+				if (currentDist < minDist) {
+					minDistToPickup = request;
+					minDist = currentDist;
+				}
+				currentLength = (float) request.initPosition.distance(request.targetPosition);
+				if(currentLength > maxLength) {
+					maxLength = currentLength;
+					maxPaidTime = request;
 				}
 			}
+			//TODO accept them both?
+			minDistToPickup.appendOffer(this.ID	);
+			maxPaidTime.appendOffer(this.ID);
+
+			//assuming the agent already has an accepted request and thinks about accepting another one:
+			Request oldRequest = new Request(Integer.MAX_VALUE,new Point(),new Point()); //TODO assume this request is the current one
+
+			//"protect" old request: compare old route to the one including the new user
+			//compare old route "firstPickup,firstDrop" with new route "firstPickup,secondPickup,firstDrop,secondDrop"
+			//TODO for simplicity assume this new route is the shortest possible one (not e.g. "secondPickup,firstPickup,firstDrop,secondDrop")
+			//float myPosToFirstPickupDist = pathLength(shortestPath(point,oldRequest.initPosition));
+			float firstPickupToFirstDropDist = pathLength(shortestPath(oldRequest.initPosition,oldRequest.targetPosition));
+			Request bestFittingRequest = null;
+			float minIncludingNewRequest = Float.MAX_VALUE;
+			for (Request newRequest : requestList) {
+				float firstPickupToSecondPickupDist = pathLength(shortestPath(oldRequest.initPosition,newRequest.initPosition));
+				float secondPickupToFirstDropDist = pathLength(shortestPath(newRequest.initPosition,oldRequest.targetPosition));
+				float includingNewPickup = firstPickupToSecondPickupDist + secondPickupToFirstDropDist;
+				if( includingNewPickup < minIncludingNewRequest) { // found a more fitting route combining the two requests
+					bestFittingRequest = newRequest;
+					minIncludingNewRequest = includingNewPickup;
+				}
+			}
+			float aThreshold = 100.0f; //TODO define threshold somewhere else
+			//found the best fitting new request. is the first user not annoyed ?
+			if( minIncludingNewRequest - firstPickupToFirstDropDist <  aThreshold) {
+				bestFittingRequest.appendOffer(this.ID); //TODO
+			}
+
+			//do not protect old request: just find the best combination of 2 (or n?),
+			//with best combination meaning maximum occupancy
+			Request first = null;
+			Request second = null;
+			float distanceSharing = 0.0f;
+			for(Request request1 : requestList) {
+				for(Request request2 : requestList) {
+					//TODO still assume that (first pickup, second pickup, first drop, second drop) is optimal
+					float secondPickupToFirstDropDist = pathLength(shortestPath(request2.initPosition,request1.targetPosition));
+					if(secondPickupToFirstDropDist > distanceSharing) {
+						first = request1;
+						second = request2;
+						distanceSharing = secondPickupToFirstDropDist;
+					}
+				}
+			}
+			//have found two requests with maximum shared distance.
+			// TODO but, is this a feasible ride ? probably no...
+			first.appendOffer(this.ID);
+			second.appendOffer(this.ID);
+
+			state = AGENT_STATE.AWAITING_CONFIRMATION;
+
+		}else{
+			// do nothing, because already occupied
 		}
-		//have found two requests with maximum shared distance.
-		// TODO but, is this a feasible ride ? probably no...
-		first.appendOffer(this.ID);
-		second.appendOffer(this.ID);
+
 
 	}
 

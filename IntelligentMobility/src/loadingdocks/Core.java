@@ -1,9 +1,6 @@
 package loadingdocks;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Pascal on 30.04.2019.
@@ -13,7 +10,7 @@ public class Core {
 
     static Map<Integer, Agent> agents = new HashMap<Integer, Agent>();
     static Map<Integer, User> users = new HashMap<Integer, User>();
-    static Map<Integer, Request> requests = new HashMap<Integer, Request>();
+    static List<Request> requests = new LinkedList<Request>();
     static Board board;
 
 
@@ -37,15 +34,36 @@ public class Core {
     }
 
     public static void appendRequest(Request r){
-        requests.put(r.ID, r);
+        requests.add(r);
     }
 
     public static void broadcastRequests(){
-        List<Request> r_list = new ArrayList<Request>(requests.values());
 
         for(Agent a:new ArrayList<Agent>(agents.values())){
-            a.receiveRequests(r_list);
+            a.receiveRequests(requests);
         }
+
+    }
+
+    private static void broadcastOffers() {
+
+
+        Iterator<Request> iter = requests.iterator();
+        while(iter.hasNext()){
+            Request rn = iter.next();
+            if(users.get(rn.userID).processOffers()){
+                iter.remove();
+            }
+        }
+
+//        for(Request r:requests){
+//            // Process the offers of the user belonging to the current request
+//            boolean requestSolved = users.get(r.userID).processOffers();
+//
+//            if(requestSolved)
+//                requests.remove(r);
+//
+//        }
     }
 
 
@@ -57,7 +75,10 @@ public class Core {
 
     private static void step(){
         broadcastRequests();
+        broadcastOffers();
     }
+
+
 
 
     // Threading stuff
@@ -74,6 +95,11 @@ public class Core {
             while(true){
                 board.step();
                 step();
+
+                // step
+                // board.update()
+
+
                 try {
                     sleep(time);
                 } catch (InterruptedException e) {
