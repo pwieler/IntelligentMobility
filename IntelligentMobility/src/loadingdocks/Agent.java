@@ -25,7 +25,8 @@ public class Agent extends Entity {
 
 	public int direction = 90;
 
-	public int usersDelivered, usersToPickUp;
+	public List<User> current_users = new LinkedList<User>();
+
 
 	public AGENT_STATE state = AGENT_STATE.IDLE;
 
@@ -36,8 +37,6 @@ public class Agent extends Entity {
 		ID = id_count++;
 		Core.registerToCore(this);
 		type = pType;
-		usersDelivered = 0;
-		usersToPickUp = countUsers;
 		this.referenceToBoard = boardReference;
 	}
 
@@ -56,7 +55,10 @@ public class Agent extends Entity {
 
 	public void receiveRequests(List<Request> requestList) {
 
-		if(state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
+
+
+		if(false){//state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
+
 			//if agent is idle (state remains unimplemented), accept request based on the following
 			//minimize "unpaid" time: sort to minimum pickup distance
 			Request minDistToPickup = null;
@@ -136,6 +138,17 @@ public class Agent extends Entity {
 		}
 
 
+	}
+
+	/* Move agent forward */
+	public void move(Point target) {
+		Board.updateEntityPosition(point,target);
+		if(!current_users.isEmpty()){
+			for(User u:current_users){
+				u.moveUser(target);
+			}
+		}
+		point = target;
 	}
 
 

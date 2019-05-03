@@ -180,7 +180,7 @@ public class Board {
 
 	public static void step() {
 		removeObjects();
-//		for(Agent a : vehicles) a.agentDecision();
+		//for(Agent a : vehicles) a.move();
 		displayObjects();
 		GUI.update();
 	}
