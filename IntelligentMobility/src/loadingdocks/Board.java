@@ -25,8 +25,8 @@ public class Board {
 	private static List<User> users;
 	
 //	private static double wallPercentage = 0.5;
-	private static final int nVehicles = 6;
-	private static final int nUsers = 15;
+	public static final int nVehicles = 6;
+	public static final int nUsers = 15;
 	
 	private static Core core;
 	

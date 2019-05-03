@@ -40,26 +40,29 @@ public class GUI extends JFrame {
 
 		private static final long serialVersionUID = 1L;
 		
-		public List<Entity> entities = new ArrayList<Entity>();
+		//public List<Entity> entities = new ArrayList<Entity>();
+		public Entity[] entities = new Entity[board.nUsers+board.nVehicles];
 		
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            for(Entity entity : entities) {
-	            g.setColor(entity.color);
-	            if(entity instanceof User) {
-	            	g.fillRect(8, 8, 13, 13);
-		            g.setColor(Color.white);
-	            	g.drawRect(8, 8, 13, 13);
-	            } else {
-	        		switch(((Agent)entity).direction) {
-		    			case 0:  g.fillPolygon(new int[]{10, 20, 30}, new int[]{25, 0, 25}, 3); break;
-		    			case 90: g.fillPolygon(new int[]{0, 25, 0}, new int[]{10, 20, 30}, 3); break;
-		    			case 180:g.fillPolygon(new int[]{0, 20, 10}, new int[]{0, 0, 25}, 3); break;
-		    			default: g.fillPolygon(new int[]{0, 25, 25}, new int[]{10, 20, 0}, 3); 
-		    		}
+	            for(Entity entity : entities) {
+	            	if(entity!=null) {
+			            g.setColor(entity.color);
+			            if(entity instanceof User) {
+			            	g.fillRect(8, 8, 13, 13);
+				            g.setColor(Color.white);
+			            	g.drawRect(8, 8, 13, 13);
+			            } else {
+			        		switch(((Agent)entity).direction) {
+				    			case 0:  g.fillPolygon(new int[]{10, 20, 30}, new int[]{25, 0, 25}, 3); break;
+				    			case 90: g.fillPolygon(new int[]{0, 25, 0}, new int[]{10, 20, 30}, 3); break;
+				    			case 180:g.fillPolygon(new int[]{0, 20, 10}, new int[]{0, 0, 25}, 3); break;
+				    			default: g.fillPolygon(new int[]{0, 25, 25}, new int[]{10, 20, 0}, 3); 
+				    		}
+			            }
+	            	}
 	            }
-            }
         }
 	}
 
@@ -112,15 +115,25 @@ public class GUI extends JFrame {
 	public void removeObject(Entity object) {
 		int row=nY-object.point.y-1, col=object.point.x;
 		Cell p = (Cell)boardPanel.getComponent(row*nX+col);
-		p.setBorder(BorderFactory.createLineBorder(Color.white));			
-		p.entities.remove(object);
+		p.setBorder(BorderFactory.createLineBorder(Color.white));	
+		for(int i = 0; i<p.entities.length;i++) {
+			if(p.entities[i]!=null) {
+				if(p.entities[i].equals(object))
+					p.entities[i]=null;
+			}
+		}
 	}
 	
 	public void displayObject(Entity object) {
 		int row=nY-object.point.y-1, col=object.point.x;
 		Cell p = (Cell)boardPanel.getComponent(row*nX+col);
-		p.setBorder(BorderFactory.createLineBorder(Color.white));			
-		p.entities.add(object);
+		p.setBorder(BorderFactory.createLineBorder(Color.white));	
+		for(int i = 0; i<p.entities.length;i++) {
+			if(p.entities[i]==null) {
+				p.entities[i]=object;
+				break;
+			}
+		}
 	}
 
 	public void update() {
