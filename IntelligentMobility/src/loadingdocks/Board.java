@@ -37,6 +37,21 @@ public class Board {
 
 	public Board(){
 		this.initialize();
+		
+//		List<Point> pickups = new ArrayList<Point>();
+//		List<Point> destinations = new ArrayList<Point>();
+//		pickups.add(new Point(10,10));
+//		destinations.add(new Point(10,19));
+//		pickups.add(new Point(5,5));
+//		destinations.add(new Point(5,8));
+//		int [] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
+//		Queue<Node> path = shortestPath(new Point(0,0),pickups,destinations);
+//		for(int o : order)
+//			System.out.println(o);
+//		for(Node p : path ) {
+//			System.out.println(p);
+//		}
+		
 	}
 
 
@@ -203,9 +218,16 @@ public class Board {
 		public static class Node { 
 		    Point point;   
 		    Node parent; //cell's distance to source 
+		    Node aggregated;
 		    public Node(Point point, Node parent) {
 		    	this.point = point;
 		    	this.parent = parent;
+		    }
+		    public Point getPoint() {
+		    	return this.point;
+		    }
+		    public void setAggregated(Node aggregated) {
+		    	this.aggregated = aggregated;
 		    }
 		    public String toString() {
 		    	return "("+point.x+","+point.y+")";
@@ -225,7 +247,7 @@ public class Board {
 	    while (!q.isEmpty()){//do a BFS 
 	        Node curr = q.remove(); //dequeue the front cell and enqueue its adjacent cells
 	        Point pt = curr.point; 
-			System.out.println(">"+pt);
+//			System.out.println(">"+pt);
 	        for (int i = 0; i < 4; i++) { 
 	        	int x=pt.x,y=pt.y;
 	        	if(pt.x+ row[i]<nX && pt.x+ row[i]>0) {
@@ -243,6 +265,54 @@ public class Board {
 	    }
 	    return null; //destination not reached
 	}
+	
+	public Queue<Node> shortestPath(Point src, List<Point> pickups, List<Point> destinations) {
+		if(pickups.size()==0)
+			return null;
+		int[] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
+		Queue<Node> completePath = new LinkedList<Node>(); 
+		completePath.add(shortestPath(src,pickups.get(0)));
+		for(int i=0; i<order.length;i++) {
+			Node innerPath = shortestPath(pickups.get(i),destinations.get(i));
+			completePath.add(innerPath);
+			if(i <order.length-1) {
+				Node outerPath = shortestPath(destinations.get(i),pickups.get(i+1));
+				completePath.add(outerPath);
+			}
+		}
+		return completePath;
+	}
+
+
+	public int[] shortestPathOrder(Point src, List<Point> pickups, List<Point> destinations, int[] order, int currentIndex) {
+		if(order==null) {
+			order = new int[pickups.size()];
+		}
+		float min = Integer.MAX_VALUE;
+		for(int i = 0;i<pickups.size();i++) {
+			if(!containsIndex(order,i)) {
+				Node node = shortestPath(src,pickups.get(i));
+				float pathLength = pathLength(node);
+				if( pathLength<=min) {
+					min = pathLength;
+					order[currentIndex]=i;
+				}
+			}
+		}
+		currentIndex++;
+		if(currentIndex<order.length) {
+			order = shortestPathOrder(destinations.get(order[currentIndex]),pickups,destinations,order,currentIndex);
+		}
+		return order;
+	}
+	
+	private boolean containsIndex(int [] order,int i) {
+		for(int index : order)
+			if (index==i)
+				return true;
+		return false;
+	}
+	
 
 	float pathLength(Node path) {
 		float result = 0.0f;
