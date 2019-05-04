@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Random;
 
 import loadingdocks.Block.Type;
 
@@ -196,7 +195,7 @@ public class Board {
 
 	public static void step() {
 		removeObjects();
-		for(Agent a : vehicles) a.plan();
+		for(Agent a : vehicles) a.followRoute();
 		displayObjects();
 		GUI.update();
 	}
@@ -219,24 +218,44 @@ public class Board {
 	}
 	
 	//For queue used in BFS 
-		public static class Node { 
-		    Point point;   
-		    Node parent; //cell's distance to source 
-		    Node aggregated;
-		    public Node(Point point, Node parent) {
-		    	this.point = point;
-		    	this.parent = parent;
-		    }
-		    public Point getPoint() {
-		    	return this.point;
-		    }
-		    public void setAggregated(Node aggregated) {
-		    	this.aggregated = aggregated;
-		    }
-		    public String toString() {
-		    	return "("+point.x+","+point.y+")";
-		    }
-		} 
+	public static class Node {
+		Point point;
+		Node parent; //cell's distance to source
+		Node aggregated;
+
+		boolean pickUp = false;
+		boolean dropOff = false;
+
+		public Node(Point point, Node parent) {
+			this.point = point;
+			this.parent = parent;
+		}
+
+		public Node(Point point, Node parent, boolean pickUp, boolean dropOff) {
+			this.point = point;
+			this.parent = parent;
+			this.pickUp = pickUp;
+			this.dropOff = dropOff;
+		}
+		public Point getPoint() {
+			return this.point;
+		}
+		public void setAggregated(Node aggregated) {
+			this.aggregated = aggregated;
+		}
+		public String toString() {
+			return "("+point.x+","+point.y+")";
+		}
+
+		public void setPickUp(){
+			pickUp = true;
+		}
+
+		public void setDropOff(){
+			dropOff = true;
+		}
+
+	}
 		
 	public static Node shortestPath(Point src, Point dest) {
 
@@ -306,6 +325,17 @@ public class Board {
 			}
 			tmp = tmp.parent;
 			i++;
+		}
+
+		tmp = start_node;
+		while(tmp!=null){
+			if(pickups.contains(tmp.point)){
+				tmp.setPickUp();
+			}
+			if(destinations.contains(tmp.point)){
+				tmp.setDropOff();
+			}
+			tmp = tmp.parent;
 		}
 
 

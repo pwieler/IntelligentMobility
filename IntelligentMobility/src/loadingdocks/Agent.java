@@ -2,15 +2,8 @@ package loadingdocks;
 
 import java.awt.Color;
 import java.awt.Point;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Stack;
-import loadingdocks.Block.Type;
 
 /**
  * Agent behavior
@@ -25,8 +18,9 @@ public class Agent extends Entity {
 
 	public int direction = 90;
 
-	public List<User> current_users = new LinkedList<User>();
-	Board.Node route;
+	public List<User> confirmed_users = new LinkedList<User>();
+	public List<User> passengers = new LinkedList<User>();
+	Board.Node route=null;
 
 
 
@@ -47,7 +41,7 @@ public class Agent extends Entity {
 		List<Point> pick_ups = new LinkedList<Point>();
 		List<Point> targets = new LinkedList<Point>();
 
-		for(User u:current_users){
+		for(User u: confirmed_users){
 			pick_ups.add(u.point);
 			targets.add(u.target_position);
 		}
@@ -66,7 +60,7 @@ public class Agent extends Entity {
 		}else{
 			user_request.match(this.ID);
 			state = AGENT_STATE.OCCUPIED;
-			current_users.add(Core.users.get(user_request.userID));
+			confirmed_users.add(Core.users.get(user_request.userID));
 
 			route = buildRoute();
 
@@ -161,10 +155,27 @@ public class Agent extends Entity {
 
 	}
 
-	public void plan(){
+	public void followRoute(){
 		if(state == AGENT_STATE.OCCUPIED){
 
 			if(route != null){
+				if(route.parent.pickUp){
+					for(User u: confirmed_users){
+						if(u.point==route.parent.point){
+							passengers.add(u);
+						}
+					}
+				}
+
+				if(route.parent.dropOff){
+					for(User u: confirmed_users){
+						if(u.point==route.parent.point){
+							passengers.remove(u);
+						}
+					}
+				}
+
+
 				move(route.parent.getPoint());
 				route = route.parent;
 				if(route.parent == null){
@@ -178,11 +189,11 @@ public class Agent extends Entity {
 	/* Move agent forward */
 	public void move(Point target) {
 		Board.updateEntityPosition(point,target);
-//		if(!current_users.isEmpty()){
-//			for(User u:current_users){
-//				u.moveUser(target);
-//			}
-//		}
+		if(!passengers.isEmpty()){
+			for(User u:passengers){
+				u.moveUser(target);
+			}
+		}
 		point = target;
 	}
 
