@@ -15,7 +15,7 @@ public class Request {
     int matchedAgentID=-1;
     Point initPosition;
     Point targetPosition;
-    List<Integer> offers;
+    List<Agent> offers;
     public boolean MATCHED = false;
 
 
@@ -24,11 +24,11 @@ public class Request {
         userID = userid;
         initPosition = init;
         targetPosition = target;
-        offers = new ArrayList<Integer>();
+        offers = new ArrayList<Agent>();
     }
 
-    public void appendOffer(int agent_id){
-        offers.add(agent_id);
+    public void appendOffer(Agent agent){
+        offers.add(agent);
     }
 
     public void match(int agent_id){
