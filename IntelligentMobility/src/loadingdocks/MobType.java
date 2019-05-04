@@ -1,3 +1,3 @@
 package loadingdocks;
 
-public enum MobType {A,B}
+public enum MobType {A,B, DEFAULT}

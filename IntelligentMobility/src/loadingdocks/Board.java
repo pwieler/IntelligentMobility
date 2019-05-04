@@ -25,8 +25,8 @@ public class Board {
 	private static List<User> users;
 	
 //	private static double wallPercentage = 0.5;
-	public static final int nVehicles = 6;
-	public static final int nUsers = 15;
+	public static final int nVehicles = 1;
+	public static final int nUsers = 1;
 	
 	private static Core core;
 	
@@ -44,7 +44,7 @@ public class Board {
 //		destinations.add(new Point(10,19));
 //		pickups.add(new Point(5,5));
 //		destinations.add(new Point(5,8));
-//		int [] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
+//		int [] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0);
 //		Queue<Node> path = shortestPath(new Point(0,0),pickups,destinations);
 //		for(int o : order)
 //			System.out.println(o);
@@ -97,29 +97,18 @@ public class Board {
 		
 		/** Add Users */
 		while(users.size()<nUsers) {
-			double rXd = Math.random()*nX;
-			double rYd = Math.random()*nY;
-			int rX = (int) rXd;
-			int rY = (int) rYd;
-			
-			double dXd = Math.random()*nX;
-			double dYd = Math.random()*nY;
-			int dX = (int) dXd;
-			int dY = (int) dYd;
-			if(board[rX][rY].color!=Color.gray ) {
-					//&& closeToStreet(rX,rY)){
-				users.add(new User(new Point(rX,rY), new Point(dX,dY), Color.RED));
-			}
+
+			Point startP = getRandomStreetCell(MobType.DEFAULT);
+			Point targetP = getRandomStreetCell(MobType.DEFAULT);
+
+			users.add(new User(startP, targetP, Color.RED));
 		}
 		
 		/** C: create agents */
 		vehicles = new ArrayList<Agent>();
 		while(vehicles.size()<nVehicles) {
-			double rXd = Math.random()*nX;
-			double rYd = Math.random()*nY;
-			int rX = (int) rXd;
-			int rY = (int) rYd;
-			MobType type = MobType.values()[new Random().nextInt(MobType.values().length)];
+
+			MobType type = MobType.A; //MobType.values()[new Random().nextInt(MobType.values().length)];
 
 			Color yor = Color.pink;
 			int maxUsers = 1;
@@ -133,14 +122,27 @@ public class Board {
 				break;
 				
 			}
-			if(board[rX][rY].color!=Color.gray || (type.equals(MobType.B) && closeToStreet(rX,rY))) {
-				vehicles.add(new Agent(new Point(rX,rY), yor,type,maxUsers,this));
 
-			}
+			Point p = getRandomStreetCell(type);
+			vehicles.add(new Agent(p, yor,type,maxUsers,this));
+
 		}
 		objects = new Entity[nX][nY];
 		for(User user : users) objects[user.point.x][user.point.y]=user;
 		for(Agent agent : vehicles) objects[agent.point.x][agent.point.y]=agent;
+	}
+
+	public Point getRandomStreetCell(MobType type){
+
+		while(true){
+			int rX = (int)(Math.random()*nX);
+			int rY = (int)(Math.random()*nY);
+
+			if(board[rX][rY].color!=Color.gray ){//|| (type.equals(MobType.B) && closeToStreet(rX,rY))) {
+				return new Point(rX,rY);
+			}
+		}
+
 	}
 	
 	public static boolean closeToStreet(int rX,int rY) {
@@ -194,10 +196,12 @@ public class Board {
 
 	public static void step() {
 		removeObjects();
-		//for(Agent a : vehicles) a.move();
+		for(Agent a : vehicles) a.plan();
 		displayObjects();
 		GUI.update();
 	}
+
+
 
 
 	public static void displayObjects(){
@@ -234,11 +238,11 @@ public class Board {
 		    }
 		} 
 		
-	public static Node shortestPath(Point src, Point dest) { 
+	public static Node shortestPath(Point src, Point dest) {
 	    boolean[][] visited = new boolean[nX][nY]; 
-	    visited[src.x][src.y] = true; 
+	    visited[dest.x][dest.y] = true;
 	    Queue<Node> q = new LinkedList<Node>(); 
-	    q.add(new Node(src,null)); //enqueue source cell 
+	    q.add(new Node(dest,null)); //enqueue source cell
 	    
 		//access the 4 neighbours of a given cell 
 		int row[] = {-1, 0, 0, 1}; 
@@ -256,7 +260,7 @@ public class Board {
 	        	if(pt.y+ col[i]<nY && pt.y+ col[i]>0) {
 	        		y = pt.y + col[i]; 
 	        	}
-    	        if(x==dest.x && y==dest.y) return new Node(dest,curr); 
+    	        if(x==src.x && y==src.y) return new Node(src,curr);
 	            if(board[x][y].color!=Color.gray  && !visited[x][y]){ 
 	                visited[x][y] = true; 
 	    	        q.add(new Node(new Point(x,y), curr)); 

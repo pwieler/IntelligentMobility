@@ -149,7 +149,7 @@ public class GUI extends JFrame {
 		panel.add(step);
 		step.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				if(run.getText().equals("Run")) board.step();
+				if(run.getText().equals("Run")) Core.step();
 				else Core.stop();
 			}
 		});

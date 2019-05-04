@@ -75,7 +75,8 @@ public class Core {
 
     private static RunThread runThread;
 
-    private static void step(){
+    public static void step(){
+        board.step();
         broadcastRequests();
         broadcastOffers();
     }
@@ -95,7 +96,6 @@ public class Core {
 
         public void run() {
             while(true){
-                board.step();
                 step();
 
                 // step
