@@ -155,7 +155,7 @@ public class Agent extends Entity {
 
 	}
 
-	public void followRoute(){
+	public void act(){
 		if(state == AGENT_STATE.OCCUPIED){
 
 			if(route != null){
@@ -163,14 +163,17 @@ public class Agent extends Entity {
 					for(User u: confirmed_users){
 						if(u.point==route.parent.point){
 							passengers.add(u);
+							u.userPickedUp();
 						}
 					}
 				}
 
 				if(route.parent.dropOff){
 					for(User u: confirmed_users){
-						if(u.point==route.parent.point){
+						if(u.target_position==route.parent.point){
 							passengers.remove(u);
+							u.userDelivered();
+							state = AGENT_STATE.IDLE;
 						}
 					}
 				}

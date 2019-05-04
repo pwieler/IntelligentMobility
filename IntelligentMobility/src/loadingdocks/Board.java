@@ -24,8 +24,8 @@ public class Board {
 	private static List<User> users;
 	
 //	private static double wallPercentage = 0.5;
-	public static final int nVehicles = 1;
-	public static final int nUsers = 1;
+	public static final int nVehicles = 5;
+	public static final int nUsers = 8;
 	
 	private static Core core;
 	
@@ -198,7 +198,7 @@ public class Board {
 
 	public static void step() {
 		removeObjects();
-		for(Agent a : vehicles) a.followRoute();
+		for(Agent a : vehicles) a.act();
 		displayObjects();
 		GUI.update();
 	}

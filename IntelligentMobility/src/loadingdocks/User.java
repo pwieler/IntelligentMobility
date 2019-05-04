@@ -56,6 +56,14 @@ public class User extends Entity {
 		return match_state;
 	}
 
+	public void userPickedUp(){
+		color = Color.BLUE;
+	}
+
+	public void userDelivered(){
+		color = Color.green;
+	}
+
 	public void pickUpUser(Point newpoint) {
 		Board.removeEntity(point);
 		point = newpoint;
