@@ -239,6 +239,11 @@ public class Board {
 		} 
 		
 	public static Node shortestPath(Point src, Point dest) {
+
+		if(src==dest){
+			return null;
+		}
+
 	    boolean[][] visited = new boolean[nX][nY]; 
 	    visited[dest.x][dest.y] = true;
 	    Queue<Node> q = new LinkedList<Node>(); 
@@ -270,11 +275,11 @@ public class Board {
 	    return null; //destination not reached
 	}
 	
-	public Queue<Node> shortestPath(Point src, List<Point> pickups, List<Point> destinations) {
+	public Node shortestPath(Point src, List<Point> pickups, List<Point> destinations) {
 		if(pickups.size()==0)
 			return null;
 		int[] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
-		Queue<Node> completePath = new LinkedList<Node>(); 
+		List<Node> completePath = new LinkedList<Node>();
 		completePath.add(shortestPath(src,pickups.get(0)));
 		for(int i=0; i<order.length;i++) {
 			Node innerPath = shortestPath(pickups.get(i),destinations.get(i));
@@ -284,7 +289,27 @@ public class Board {
 				completePath.add(outerPath);
 			}
 		}
-		return completePath;
+
+
+		// Make List of paths to one path!
+		Node start_node = completePath.get(0);
+		Node tmp = start_node;
+
+		int i = 0;
+		while(i < completePath.size()-1){
+			while(tmp.parent!=null){
+				tmp = tmp.parent;
+			}
+			tmp.parent = completePath.get(i+1);
+			if(tmp.parent==null){
+				break;
+			}
+			tmp = tmp.parent;
+			i++;
+		}
+
+
+		return start_node;
 	}
 
 

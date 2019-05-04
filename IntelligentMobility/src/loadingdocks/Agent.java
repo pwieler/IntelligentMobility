@@ -26,6 +26,8 @@ public class Agent extends Entity {
 	public int direction = 90;
 
 	public List<User> current_users = new LinkedList<User>();
+	Board.Node route;
+
 
 
 	public AGENT_STATE state = AGENT_STATE.IDLE;
@@ -40,6 +42,21 @@ public class Agent extends Entity {
 		this.referenceToBoard = boardReference;
 	}
 
+	public Board.Node buildRoute(){
+
+		List<Point> pick_ups = new LinkedList<Point>();
+		List<Point> targets = new LinkedList<Point>();
+
+		for(User u:current_users){
+			pick_ups.add(u.point);
+			targets.add(u.target_position);
+		}
+
+		Board.Node paths = referenceToBoard.shortestPath(point,pick_ups,targets);
+
+		return paths;
+	}
+
 
 	// Core communication
 	public boolean confirmMatch(Request user_request){
@@ -50,6 +67,9 @@ public class Agent extends Entity {
 			user_request.match(this.ID);
 			state = AGENT_STATE.OCCUPIED;
 			current_users.add(Core.users.get(user_request.userID));
+
+			route = buildRoute();
+
 			return true;
 		}
 	}
@@ -143,9 +163,13 @@ public class Agent extends Entity {
 
 	public void plan(){
 		if(state == AGENT_STATE.OCCUPIED){
-			Board.Node path = referenceToBoard.shortestPath(point,current_users.get(0).point);
-			if(path != null){
-				move(path.parent.getPoint());
+
+			if(route != null){
+				move(route.parent.getPoint());
+				route = route.parent;
+				if(route.parent == null){
+					route = null;
+				}
 			}
 
 		}
