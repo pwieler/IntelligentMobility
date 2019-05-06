@@ -78,7 +78,7 @@ public class Agent extends Entity {
 
 		if(state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
 
-			//if agent is idle (state remains unimplemented), accept request based on the following
+			//if agent is idle accept request based on the following
 			//minimize "unpaid" time: sort to minimum pickup distance
 			Request minDistToPickup = null;
 			float minDist = Float.MAX_VALUE;
@@ -99,8 +99,8 @@ public class Agent extends Entity {
 				}
 			}
 			//TODO accept them both?
-			minDistToPickup.appendOffer(this.ID	);
-			maxPaidTime.appendOffer(this.ID);
+			minDistToPickup.appendOffer(this	);
+			maxPaidTime.appendOffer(this);
 
 //			//assuming the agent already has an accepted request and thinks about accepting another one:
 //			Request oldRequest = new Request(Integer.MAX_VALUE,new Point(),new Point()); //TODO assume this request is the current one
@@ -125,7 +125,7 @@ public class Agent extends Entity {
 //			float aThreshold = 100.0f; //TODO define threshold somewhere else
 //			//found the best fitting new request. is the first user not annoyed ?
 //			if( minIncludingNewRequest - firstPickupToFirstDropDist <  aThreshold) {
-//				bestFittingRequest.appendOffer(this.ID); //TODO
+//				bestFittingRequest.appendOffer(this); //TODO
 //
 //			}
 //
@@ -147,8 +147,8 @@ public class Agent extends Entity {
 //			}
 //			//have found two requests with maximum shared distance.
 //			// TODO but, is this a feasible ride ? probably no...
-//			first.appendOffer(this.ID);
-//			second.appendOffer(this.ID);
+//			first.appendOffer(this);
+//			second.appendOffer(this);
 
 			state = AGENT_STATE.AWAITING_CONFIRMATION;
 
