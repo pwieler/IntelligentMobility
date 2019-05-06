@@ -28,7 +28,9 @@ public class Request {
     }
 
     public void appendOffer(int agent_id){
-        offers.add(agent_id);
+        if(!offers.contains(agent_id)){
+            offers.add(agent_id);
+        }
     }
 
     public void match(int agent_id){

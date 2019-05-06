@@ -38,13 +38,16 @@ public class User extends Entity {
 		boolean match_state = false;
 
 		try{
-
-			int chosen_agent_id = myRequest.offers.get(0);
-			match_state = Core.agents.get(chosen_agent_id).confirmMatch(myRequest);
-
-			if(!match_state){
-				myRequest.offers.remove(chosen_agent_id);
+			for(Integer agent_id:myRequest.offers){
+				match_state = Core.agents.get(agent_id).confirmMatch(myRequest);
+				if(!match_state){
+					myRequest.offers.remove(agent_id); //remove(agent_id);
+				}else{
+					break;
+				}
 			}
+
+
 
 			// if no match --> take next offer --> until match!
 

@@ -70,6 +70,10 @@ public class Agent extends Entity {
 
 	public void receiveRequests(List<Request> requestList) {
 
+		if(requestList.isEmpty()){
+			return;
+		}
+
 
 
 		if(state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
@@ -158,12 +162,16 @@ public class Agent extends Entity {
 	public void act(){
 		if(state == AGENT_STATE.OCCUPIED){
 
+			move(route.parent.getPoint());
+
 			if(route != null){
 				if(route.parent.pickUp){
 					for(User u: confirmed_users){
 						if(u.point==route.parent.point){
-							passengers.add(u);
-							u.userPickedUp();
+							if(!passengers.contains(u)){
+								passengers.add(u);
+								u.userPickedUp();
+							}
 						}
 					}
 				}
@@ -172,6 +180,7 @@ public class Agent extends Entity {
 					for(User u: confirmed_users){
 						if(u.target_position==route.parent.point){
 							passengers.remove(u);
+							confirmed_users.remove(u);
 							u.userDelivered();
 							state = AGENT_STATE.IDLE;
 						}
@@ -179,7 +188,7 @@ public class Agent extends Entity {
 				}
 
 
-				move(route.parent.getPoint());
+
 				route = route.parent;
 				if(route.parent == null){
 					route = null;
