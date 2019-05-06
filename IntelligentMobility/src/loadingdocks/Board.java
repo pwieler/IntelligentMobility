@@ -11,7 +11,7 @@ import loadingdocks.Block.Type;
 
 /**
  * Environment
- * @author Rui Henriques
+ * @author Kevin Corrales
  */
 public class Board {
 
@@ -28,6 +28,7 @@ public class Board {
 	public static final int nUsers = 8;
 	
 	private static Core core;
+	
 	
 	/****************************
 	 ***** A: SETTING BOARD *****
