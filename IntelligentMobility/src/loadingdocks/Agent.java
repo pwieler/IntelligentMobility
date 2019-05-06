@@ -5,10 +5,7 @@ import java.awt.Point;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Agent behavior
- * @author Rui Henriques
- */
+
 public class Agent extends Entity {
 
 	static int id_count = 0;
