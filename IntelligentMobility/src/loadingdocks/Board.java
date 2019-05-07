@@ -312,7 +312,7 @@ public class Board {
 		}
 
 
-		int[] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
+		int[] order = shortestPathOrder(src,pickups,destinations,null,0);
 		List<Node> completePath = new LinkedList<Node>();
 		completePath.add(shortestPath(src,pickups.get(0)));
 		for(int i=0; i<order.length;i++) {

@@ -14,7 +14,8 @@ public class Agent extends Entity {
     AgentStrategy strategy;
 	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
 
-	public AGENT_STATE state = AGENT_STATE.IDLE;
+	public AGENT_STATE state;
+
 	public int capacity = 4;
 
 	public List<User> confirmed_users = new LinkedList<User>();
@@ -35,6 +36,8 @@ public class Agent extends Entity {
 		type = pType;
 		this.referenceToBoard = boardReference;
 		strategy = AgentStrategy.MinUnpaidTime;
+
+		setState(AGENT_STATE.IDLE);
 	}
 
     public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference, AgentStrategy agentStrategy ) {
@@ -49,7 +52,7 @@ public class Agent extends Entity {
 		List<Point> targets = new LinkedList<Point>();
 
 		for(User u: confirmed_users){
-			if(u.state== User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
+			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
 				pick_ups.add(new Point(-1,-1));
 			}else{
 				pick_ups.add(u.point);
@@ -74,14 +77,37 @@ public class Agent extends Entity {
 			confirmed_users.add(Core.users.get(user_request.userID));
 
 			if(confirmed_users.size()>=capacity){
-				state = AGENT_STATE.FULL;
+				setState(AGENT_STATE.FULL);
 			}else{
-				state = AGENT_STATE.OCCUPIED;
+				setState(AGENT_STATE.OCCUPIED);
 			}
 
 
 
 			return true;
+		}
+	}
+
+	public void setState(AGENT_STATE state){
+		switch(state){
+			case IDLE:
+				this.state = AGENT_STATE.IDLE;
+				color = Color.BLACK;
+				break;
+			case AWAITING_CONFIRMATION:
+				this.state = AGENT_STATE.AWAITING_CONFIRMATION;
+				color = Color.GRAY;
+				break;
+			case OCCUPIED:
+				this.state = AGENT_STATE.OCCUPIED;
+				color = Color.CYAN;
+				break;
+			case FULL:
+				this.state = AGENT_STATE.FULL;
+				color = Color.YELLOW;
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -170,7 +196,7 @@ public class Agent extends Entity {
 			if(state == AGENT_STATE.OCCUPIED){
 				// leave state the same!
 			}else{
-				state = AGENT_STATE.AWAITING_CONFIRMATION;
+				setState(AGENT_STATE.AWAITING_CONFIRMATION);
 			}
 
 
@@ -215,9 +241,9 @@ public class Agent extends Entity {
 						}
 
 						if (confirmed_users.size() > 0) {
-							state = AGENT_STATE.OCCUPIED;
+							setState(AGENT_STATE.OCCUPIED);
 						} else {
-							state = AGENT_STATE.IDLE;
+							setState(AGENT_STATE.IDLE);
 						}
 					}
 
