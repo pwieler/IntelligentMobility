@@ -6,6 +6,9 @@ import java.util.List;
 
 public class User extends Entity {
 
+	public enum USER_STATE {WAITING,PICKED_UP,DELIVERED};
+	public USER_STATE state = USER_STATE.WAITING;
+
 	static int id_count = 0;
 	int ID;
 
@@ -78,21 +81,14 @@ public class User extends Entity {
 
 	public void userPickedUp(){
 		color = Color.BLUE;
+		state = USER_STATE.PICKED_UP;
 	}
 
 	public void userDelivered(){
 		color = Color.green;
+		state = USER_STATE.DELIVERED;
 	}
 
-	public void pickUpUser(Point newpoint) {
-		Board.removeEntity(point);
-		point = newpoint;
-	}
-	
-	public void dropUser(Point newpoint) {
-		Board.insertEntity(this,newpoint);
-		point = newpoint;
-	}
 
 	public void moveUser(Point newpoint) {
 		point = newpoint;

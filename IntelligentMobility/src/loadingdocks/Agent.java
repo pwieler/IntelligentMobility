@@ -2,6 +2,7 @@ package loadingdocks;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,20 +12,22 @@ public class Agent extends Entity {
 	static int id_count = 0;
 	int ID;
 
-	public enum AGENT_STATE {IDLE,OCCUPIED,AWAITING_CONFIRMATION};
+	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
 
-	public int direction = 90;
+	public AGENT_STATE state = AGENT_STATE.IDLE;
+	public int capacity = 7;
 
 	public List<User> confirmed_users = new LinkedList<User>();
 	public List<User> passengers = new LinkedList<User>();
 	Board.Node route=null;
 
-
-
-	public AGENT_STATE state = AGENT_STATE.IDLE;
-
 	private MobType type;
 	private Board referenceToBoard;
+	public int direction = 90;
+
+
+
+
 	public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference){
 		super(point, color);
 		ID = id_count++;
@@ -39,7 +42,12 @@ public class Agent extends Entity {
 		List<Point> targets = new LinkedList<Point>();
 
 		for(User u: confirmed_users){
-			pick_ups.add(u.point);
+			if(u.state== User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
+				pick_ups.add(new Point(-1,-1));
+			}else{
+				pick_ups.add(u.point);
+			}
+
 			targets.add(u.target_position);
 		}
 
@@ -52,12 +60,17 @@ public class Agent extends Entity {
 	// Core communication
 	public boolean confirmMatch(Request user_request){
 
-		if(state == AGENT_STATE.OCCUPIED){
+		if(state == AGENT_STATE.FULL){
 			return false;
 		}else{
 			user_request.match(this.ID);
-			state = AGENT_STATE.OCCUPIED;
 			confirmed_users.add(Core.users.get(user_request.userID));
+
+			if(confirmed_users.size()>=capacity){
+				state = AGENT_STATE.FULL;
+			}else{
+				state = AGENT_STATE.OCCUPIED;
+			}
 
 			route = buildRoute();
 
@@ -71,9 +84,7 @@ public class Agent extends Entity {
 			return;
 		}
 
-
-
-		if(state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
+		if(state != AGENT_STATE.FULL){
 
 			//if agent is idle accept request based on the following
 			//minimize "unpaid" time: sort to minimum pickup distance
@@ -147,17 +158,22 @@ public class Agent extends Entity {
 //			first.appendOffer(this);
 //			second.appendOffer(this);
 
-			state = AGENT_STATE.AWAITING_CONFIRMATION;
+			if(state == AGENT_STATE.OCCUPIED){
+				// leave state the same!
+			}else{
+				state = AGENT_STATE.AWAITING_CONFIRMATION;
+			}
+
 
 		}else{
-			// do nothing, because already occupied
+			// do nothing, because already full
 		}
 
 
 	}
 
 	public void act(){
-		if(state == AGENT_STATE.OCCUPIED){
+		if(state == AGENT_STATE.OCCUPIED || state == AGENT_STATE.FULL){
 
 			move(route.parent.getPoint());
 
@@ -174,13 +190,29 @@ public class Agent extends Entity {
 				}
 
 				if(route.parent.dropOff){
-					for(User u: confirmed_users){
+
+					Iterator<User> iter = confirmed_users.iterator();
+					while(iter.hasNext()){
+						User u = iter.next();
 						if(u.target_position==route.parent.point){
 							passengers.remove(u);
-							confirmed_users.remove(u);
 							u.userDelivered();
-							state = AGENT_STATE.IDLE;
+							iter.remove(); // confirmed_users.remove(u);
 						}
+					}
+
+//					for(User u: confirmed_users){
+//						if(u.target_position==route.parent.point){
+//							passengers.remove(u);
+//							confirmed_users.remove(u);
+//							u.userDelivered();
+//						}
+//					}
+
+					if(confirmed_users.size()>0){
+						state = AGENT_STATE.OCCUPIED;
+					}else{
+						state = AGENT_STATE.IDLE;
 					}
 				}
 

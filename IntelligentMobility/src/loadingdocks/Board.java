@@ -24,7 +24,7 @@ public class Board {
 	private static List<User> users;
 	
 //	private static double wallPercentage = 0.5;
-	public static final int nVehicles = 5;
+	public static final int nVehicles = 1;
 	public static final int nUsers = 8;
 	
 	private static Core core;
@@ -301,6 +301,17 @@ public class Board {
 	public Node shortestPath(Point src, List<Point> pickups, List<Point> destinations) {
 		if(pickups.size()==0)
 			return null;
+
+		List<Integer> invalid_pickups = new LinkedList<Integer>();
+
+		for(int i = 0;i<pickups.size();i++){
+			if(pickups.get(i).x == -1){
+				pickups.set(i,destinations.get(i));
+				invalid_pickups.add(i);
+			}
+		}
+
+
 		int[] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
 		List<Node> completePath = new LinkedList<Node>();
 		completePath.add(shortestPath(src,pickups.get(0)));
