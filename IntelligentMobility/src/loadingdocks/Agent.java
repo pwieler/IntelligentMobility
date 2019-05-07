@@ -25,7 +25,7 @@ public class Agent extends Entity {
 	private MobType type;
 	private Board referenceToBoard;
 	public int direction = 90;
-
+	private int totalDistanceTraveled = 0;
 
 
 
@@ -258,9 +258,14 @@ public class Agent extends Entity {
 		}
 	}
 
+	public int getTotalDistance() {
+		return this.totalDistanceTraveled;
+	}
+	
 	/* Move agent forward */
 	public void move(Point target) {
 		Board.updateEntityPosition(point,target);
+		totalDistanceTraveled++;
 		if(!passengers.isEmpty()){
 			for(User u:passengers){
 				u.moveUser(target);
