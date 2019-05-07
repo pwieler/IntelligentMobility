@@ -321,35 +321,35 @@ public class Board {
 
 
 		// Make List of paths to one path!
-		Node start_node = completePath.get(0);
-		Node tmp = start_node;
+				Node start_node = completePath.get(0);
+				Node tmp = start_node;
 
-		int i = 0;
-		while(i < completePath.size()-1){
-			if(tmp.parent!=null){
-				tmp = tmp.parent;
-			}
-			tmp.parent = completePath.get(i+1);
-			if(tmp.parent==null){
-				break;
-			}
-			tmp = tmp.parent;
-			i++;
-		}
+				int i = 0;
+				while(i < completePath.size()-1){
+					while(tmp.parent!=null){
+						tmp = tmp.parent;
+					}
+					tmp.parent = completePath.get(i+1);
+					if(tmp.parent==null){
+						break;
+					}
+					tmp = tmp.parent;
+					i++;
+				}
 
-		tmp = start_node;
-		while(tmp!=null){
-			if(pickups.contains(tmp.point)){
-				tmp.setPickUp();
-			}
-			if(destinations.contains(tmp.point)){
-				tmp.setDropOff();
-			}
-			tmp = tmp.parent;
-		}
+				tmp = start_node;
+				while(tmp!=null){
+					if(pickups.contains(tmp.point)){
+						tmp.setPickUp();
+					}
+					if(destinations.contains(tmp.point)){
+						tmp.setDropOff();
+					}
+					tmp = tmp.parent;
+				}
 
 
-		return start_node;
+				return start_node;
 	}
 
 
