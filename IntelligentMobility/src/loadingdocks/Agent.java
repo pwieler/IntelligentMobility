@@ -72,7 +72,7 @@ public class Agent extends Entity {
 				state = AGENT_STATE.OCCUPIED;
 			}
 
-			route = buildRoute();
+
 
 			return true;
 		}
@@ -174,6 +174,8 @@ public class Agent extends Entity {
 
 	public void act(){
 		if(state == AGENT_STATE.OCCUPIED || state == AGENT_STATE.FULL){
+
+			route = buildRoute();
 
 			move(route.parent.getPoint());
 
