@@ -37,19 +37,23 @@ public class Board {
 	public Board(){
 		this.initialize();
 		
-		System.out.println(shortestPath(new Point(5,9),new Point(0,6)));
+//		System.out.println(shortestPath(new Point(5,9),new Point(0,6)));
 //		List<Point> pickups = new ArrayList<Point>();
 //		List<Point> destinations = new ArrayList<Point>();
 //		pickups.add(new Point(10,10));
 //		destinations.add(new Point(10,19));
 //		pickups.add(new Point(5,5));
 //		destinations.add(new Point(5,8));
-//		int [] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0);
-//		Queue<Node> path = shortestPath(new Point(0,0),pickups,destinations);
+//		int [] order = shortestPathOrder(new Point(1,1),pickups,destinations,null,0);
+//		Node path = shortestPath(new Point(1,1),pickups,destinations);
 //		for(int o : order)
 //			System.out.println(o);
-//		for(Node p : path ) {
-//			System.out.println(p);
+//		Node tempPath = path;
+//		if(tempPath!=null){
+//			while (tempPath.parent != null) {
+//				System.out.println(tempPath);
+//				tempPath = tempPath.parent;
+//			}
 //		}
 		
 	}
@@ -300,14 +304,14 @@ public class Board {
 	public Node shortestPath(Point src, List<Point> pickups, List<Point> destinations) {
 		if(pickups.size()==0)
 			return null;
-		int[] order = shortestPathOrder(new Point(0,0),pickups,destinations,null,0); 
-		List<Node> completePath = new LinkedList<Node>();
-		completePath.add(shortestPath(src,pickups.get(0)));
+		int[] order = shortestPathOrder(src,pickups,destinations,null,0); 
+		List<Node> completePath = new ArrayList<Node>();
+		completePath.add(shortestPath(src,pickups.get(order[0])));
 		for(int i=0; i<order.length;i++) {
-			Node innerPath = shortestPath(pickups.get(i),destinations.get(i));
+			Node innerPath = shortestPath(pickups.get(order[i]),destinations.get(order[i]));
 			completePath.add(innerPath);
 			if(i <order.length-1) {
-				Node outerPath = shortestPath(destinations.get(i),pickups.get(i+1));
+				Node outerPath = shortestPath(destinations.get(order[i]),pickups.get(order[i+1]));
 				completePath.add(outerPath);
 			}
 		}
@@ -319,7 +323,7 @@ public class Board {
 
 		int i = 0;
 		while(i < completePath.size()-1){
-			while(tmp.parent!=null){
+			if(tmp.parent!=null){
 				tmp = tmp.parent;
 			}
 			tmp.parent = completePath.get(i+1);
@@ -374,6 +378,94 @@ public class Board {
 				return true;
 		return false;
 	}
+	
+	public Node shortestPathComplex(Point src, List<Point> pickups, List<Point> destinations) {
+		if(pickups.size()==0)
+			return null;
+		String[] order = shortestPathOrderComplex(src,pickups,destinations,null,0); 
+		List<Node> completePath = new LinkedList<Node>();
+		completePath.add(shortestPath(src,pickups.get(0)));
+		for(int i=0; i<order.length;i++) {
+			Node innerPath = shortestPath(pickups.get(i),destinations.get(i));
+			completePath.add(innerPath);
+			if(i <order.length-1) {
+				Node outerPath = shortestPath(destinations.get(i),pickups.get(i+1));
+				completePath.add(outerPath);
+			}
+		}
+
+
+		// Make List of paths to one path!
+		Node start_node = completePath.get(0);
+		Node tmp = start_node;
+
+		int i = 0;
+		while(i < completePath.size()-1){
+			while(tmp.parent!=null){
+				tmp = tmp.parent;
+			}
+			tmp.parent = completePath.get(i+1);
+			if(tmp.parent==null){
+				break;
+			}
+			tmp = tmp.parent;
+			i++;
+		}
+
+		tmp = start_node;
+		while(tmp!=null){
+			if(pickups.contains(tmp.point)){
+				tmp.setPickUp();
+			}
+			if(destinations.contains(tmp.point)){
+				tmp.setDropOff();
+			}
+			tmp = tmp.parent;
+		}
+
+
+		return start_node;
+	}
+	
+	public String[] shortestPathOrderComplex(Point src, List<Point> pickups, List<Point> destinations, String[] order, int currentIndex) {
+		if(order==null) {
+			order = new String[pickups.size()];
+		}
+		float min = Integer.MAX_VALUE;
+		Point nextPoint=null;
+		for(int i = 0;i<pickups.size();i++) {
+			if(!containsIndexComplex(order,"P"+i)) {
+				Node node = shortestPath(src,pickups.get(i));
+				float pathLength = pathLength(node);
+				if( pathLength<=min) {
+					min = pathLength;
+					order[currentIndex]="P"+i;
+					nextPoint=pickups.get(i);
+				}
+			}else if(!containsIndexComplex(order,"D"+i)) {
+				Node node = shortestPath(src,destinations.get(i));
+				float pathLength = pathLength(node);
+				if( pathLength<=min) {
+					min = pathLength;
+					order[currentIndex]="D"+i;
+					nextPoint=destinations.get(i);
+				}
+			}
+		}
+		currentIndex++;
+		if(currentIndex<order.length) {
+			order = shortestPathOrderComplex(nextPoint,pickups,destinations,order,currentIndex);
+		}
+		return order;
+	}
+	
+	private boolean containsIndexComplex(String [] order,String i) {
+		for(String index : order)
+			if (index==i)
+				return true;
+		return false;
+	}
+	
 	
 
 	float pathLength(Node path) {
