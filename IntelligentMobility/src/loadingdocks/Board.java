@@ -340,7 +340,7 @@ public class Board {
 
 		int i = 0;
 		while(i < completePath.size()-1){
-			if(tmp.parent!=null){
+			while(tmp.parent!=null){
 				tmp = tmp.parent;
 			}
 			tmp.parent = completePath.get(i+1);
@@ -368,6 +368,7 @@ public class Board {
 
 		//System.out.println();
 		return start_node;
+
 	}
 
 
