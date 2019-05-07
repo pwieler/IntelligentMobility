@@ -45,9 +45,12 @@ public class Board {
 //		destinations.add(new Point(10,19));
 //		pickups.add(new Point(5,5));
 //		destinations.add(new Point(5,8));
-//		int [] order = shortestPathOrder(new Point(1,1),pickups,destinations,null,0);
-//		Node path = shortestPath(new Point(1,1),pickups,destinations);
-//		for(int o : order)
+////		int [] order = shortestPathOrder(new Point(1,1),pickups,destinations,null,0);
+////		Node path = shortestPath(new Point(1,1),pickups,destinations);
+//		
+//		String [] order = shortestPathOrderComplex(new Point(1,1),pickups,destinations,null,0);
+//		Node path = shortestPathComplex(new Point(1,1),pickups,destinations);
+//		for(String o : order)
 //			System.out.println(o);
 //		Node tempPath = path;
 //		if(tempPath!=null){
@@ -397,19 +400,24 @@ public class Board {
 		return false;
 	}
 	
+	private Point getNextPoint(String point,List<Point> pickups, List<Point> destinations) {
+		String [] pointSplit = new String[] {point.substring(0,1),point.substring(1,2)};
+		if(pointSplit[0].equals("P")) {
+			return pickups.get(Integer.parseInt(pointSplit[1]));
+		}else {
+			return destinations.get(Integer.parseInt(pointSplit[1]));
+		}
+	}
+	
 	public Node shortestPathComplex(Point src, List<Point> pickups, List<Point> destinations) {
 		if(pickups.size()==0)
 			return null;
 		String[] order = shortestPathOrderComplex(src,pickups,destinations,null,0); 
 		List<Node> completePath = new LinkedList<Node>();
-		completePath.add(shortestPath(src,pickups.get(0)));
-		for(int i=0; i<order.length;i++) {
-			Node innerPath = shortestPath(pickups.get(i),destinations.get(i));
-			completePath.add(innerPath);
-			if(i <order.length-1) {
-				Node outerPath = shortestPath(destinations.get(i),pickups.get(i+1));
-				completePath.add(outerPath);
-			}
+		completePath.add(shortestPath(src,getNextPoint(order[0],pickups,destinations)));
+		for(int i=0; i<order.length-1;i++) {
+			Node path = shortestPath(getNextPoint(order[i],pickups,destinations),getNextPoint(order[i+1],pickups,destinations));
+			completePath.add(path);
 		}
 
 
@@ -447,7 +455,7 @@ public class Board {
 	
 	public String[] shortestPathOrderComplex(Point src, List<Point> pickups, List<Point> destinations, String[] order, int currentIndex) {
 		if(order==null) {
-			order = new String[pickups.size()];
+			order = new String[pickups.size()+destinations.size()];
 		}
 		float min = Integer.MAX_VALUE;
 		Point nextPoint=null;
@@ -477,10 +485,14 @@ public class Board {
 		return order;
 	}
 	
-	private boolean containsIndexComplex(String [] order,String i) {
-		for(String index : order)
-			if (index==i)
-				return true;
+	private boolean containsIndexComplex(String [] order,String compare) {
+		for(int i = 0;i<order.length;i++) {
+			if(order[i]!=null) {
+				if (order[i].equals(compare))
+					return true;
+			}else
+				return false;
+		}
 		return false;
 	}
 	
