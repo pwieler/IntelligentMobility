@@ -6,22 +6,31 @@ import java.util.List;
 
 public class User extends Entity {
 
+	public enum USER_STATE {WAITING,PICKED_UP,DELIVERED};
+	public USER_STATE state = USER_STATE.WAITING;
+
 	static int id_count = 0;
 	int ID;
-
+    private Board referenceToBoard;
+    UserStrategy strategy;
 	Point target_position;
 	Request myRequest;
 
 
-	public User(Point init, Point target, Color color) {
+	public User(Point init, Point target, Color color, Board boardReference) {
 		super(init, color);
-
+        referenceToBoard = boardReference;
 		target_position = target;
 		ID = id_count++;
 
 		Core.registerToCore(this);
 		this.sendRequest();
+		strategy = UserStrategy.ShortestPickup;
 	}
+    public User(Point init, Point target, Color color, Board boardReference, UserStrategy userStrategy) {
+        this(init,target,color,boardReference);
+        strategy = userStrategy;
+    }
 	
 	/*****************************
 	 ***** AUXILIARY METHODS ***** 
@@ -37,16 +46,32 @@ public class User extends Entity {
 
 		boolean match_state = false;
 
-		try{
+		try {
+            // if no match --> take next offer --> until match!
+		    while ( !match_state && myRequest.offers.size() != 0) {
+                if (strategy == UserStrategy.ShortestPickup) {
+                    //choose offer with shortest euclidian distance (NOT shortest path, could also be an option)
+                    myRequest.offers.sort((Agent offeringAgent1, Agent offeringAgent2) -> {
 
-			int chosen_agent_id = myRequest.offers.get(0);
-			match_state = Core.agents.get(chosen_agent_id).confirmMatch(myRequest);
+                        return referenceToBoard.pathLength(Board.shortestPath(offeringAgent1.point, this.point)) <
+                                referenceToBoard.pathLength(Board.shortestPath(offeringAgent2.point, this.point)) ? -1 : 1;
+                    });
+                } else if (strategy == UserStrategy.Loner) {
+                    //choose offer with as less current users  as possible (i want to be alone in the taxi!)
+                    myRequest.offers.sort((Agent offeringAgent1, Agent offeringAgent2) -> {
+                        return offeringAgent1.confirmed_users.size() <
+                                offeringAgent2.confirmed_users.size() ? -1 : 1;
+                    });
+                }
 
-			if(!match_state){
-				myRequest.offers.remove(chosen_agent_id);
-			}
+                match_state = myRequest.offers.get(0).confirmMatch(myRequest);
 
-			// if no match --> take next offer --> until match!
+                if (!match_state) {
+                    myRequest.offers.remove(0);
+                }
+
+
+            }
 
 		}catch (Exception e){
 
@@ -56,15 +81,16 @@ public class User extends Entity {
 		return match_state;
 	}
 
-	public void pickUpUser(Point newpoint) {
-		Board.removeEntity(point);
-		point = newpoint;
+	public void userPickedUp(){
+		color = Color.BLUE;
+		state = USER_STATE.PICKED_UP;
 	}
-	
-	public void dropUser(Point newpoint) {
-		Board.insertEntity(this,newpoint);
-		point = newpoint;
+
+	public void userDelivered(){
+		color = Color.green;
+		state = USER_STATE.DELIVERED;
 	}
+
 
 	public void moveUser(Point newpoint) {
 		point = newpoint;

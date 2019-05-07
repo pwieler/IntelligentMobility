@@ -2,39 +2,49 @@ package loadingdocks;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Agent behavior
- * @author Rui Henriques
- */
+
 public class Agent extends Entity {
 
 	static int id_count = 0;
 	int ID;
+    AgentStrategy strategy;
+	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
 
-	public enum AGENT_STATE {IDLE,OCCUPIED,AWAITING_CONFIRMATION};
+	public AGENT_STATE state;
 
-	public int direction = 90;
+	public int capacity = 4;
 
 	public List<User> confirmed_users = new LinkedList<User>();
 	public List<User> passengers = new LinkedList<User>();
 	Board.Node route=null;
 
-
-
-	public AGENT_STATE state = AGENT_STATE.IDLE;
-
 	private MobType type;
 	private Board referenceToBoard;
+	public int direction = 90;
+
+
+
+
 	public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference){
 		super(point, color);
 		ID = id_count++;
 		Core.registerToCore(this);
 		type = pType;
 		this.referenceToBoard = boardReference;
+		strategy = AgentStrategy.MinUnpaidTime;
+
+		setState(AGENT_STATE.IDLE);
 	}
+
+    public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference, AgentStrategy agentStrategy ) {
+        this(point,color,pType,countUsers,boardReference);
+        strategy = agentStrategy;
+    }
+
 
 	public Board.Node buildRoute(){
 
@@ -42,7 +52,12 @@ public class Agent extends Entity {
 		List<Point> targets = new LinkedList<Point>();
 
 		for(User u: confirmed_users){
-			pick_ups.add(u.point);
+			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
+				pick_ups.add(new Point(-1,-1));
+			}else{
+				pick_ups.add(u.point);
+			}
+
 			targets.add(u.target_position);
 		}
 
@@ -55,26 +70,56 @@ public class Agent extends Entity {
 	// Core communication
 	public boolean confirmMatch(Request user_request){
 
-		if(state == AGENT_STATE.OCCUPIED){
+		if(state == AGENT_STATE.FULL){
 			return false;
 		}else{
 			user_request.match(this.ID);
-			state = AGENT_STATE.OCCUPIED;
 			confirmed_users.add(Core.users.get(user_request.userID));
 
-			route = buildRoute();
+			if(confirmed_users.size()>=capacity){
+				setState(AGENT_STATE.FULL);
+			}else{
+				setState(AGENT_STATE.OCCUPIED);
+			}
+
+
 
 			return true;
 		}
 	}
 
+	public void setState(AGENT_STATE state){
+		switch(state){
+			case IDLE:
+				this.state = AGENT_STATE.IDLE;
+				color = Color.BLACK;
+				break;
+			case AWAITING_CONFIRMATION:
+				this.state = AGENT_STATE.AWAITING_CONFIRMATION;
+				color = Color.GRAY;
+				break;
+			case OCCUPIED:
+				this.state = AGENT_STATE.OCCUPIED;
+				color = Color.CYAN;
+				break;
+			case FULL:
+				this.state = AGENT_STATE.FULL;
+				color = Color.YELLOW;
+				break;
+			default:
+				break;
+		}
+	}
+
 	public void receiveRequests(List<Request> requestList) {
 
+		if(requestList.isEmpty()){
+			return;
+		}
 
+		if(state != AGENT_STATE.FULL){
 
-		if(state == AGENT_STATE.IDLE || state == AGENT_STATE.AWAITING_CONFIRMATION){
-
-			//if agent is idle (state remains unimplemented), accept request based on the following
+			//if agent is idle accept request based on the following
 			//minimize "unpaid" time: sort to minimum pickup distance
 			Request minDistToPickup = null;
 			float minDist = Float.MAX_VALUE;
@@ -83,20 +128,22 @@ public class Agent extends Entity {
 			float currentLength;
 			Request maxPaidTime = null;
 			for (Request request : requestList) {
-				float currentDist = (float)this.point.distance(request.initPosition);
+				float currentDist = referenceToBoard.pathLength( referenceToBoard.shortestPath(this.point, request.initPosition));
 				if (currentDist < minDist) {
 					minDistToPickup = request;
 					minDist = currentDist;
 				}
-				currentLength = (float) request.initPosition.distance(request.targetPosition);
+				currentLength = referenceToBoard.pathLength( referenceToBoard.shortestPath(request.initPosition, request.targetPosition));
 				if(currentLength > maxLength) {
 					maxLength = currentLength;
 					maxPaidTime = request;
 				}
 			}
-			//TODO accept them both?
-			minDistToPickup.appendOffer(this.ID	);
-			maxPaidTime.appendOffer(this.ID);
+            if(strategy == AgentStrategy.MinUnpaidTime)
+			    minDistToPickup.appendOffer(this	);
+            else
+			    maxPaidTime.appendOffer(this);
+
 
 //			//assuming the agent already has an accepted request and thinks about accepting another one:
 //			Request oldRequest = new Request(Integer.MAX_VALUE,new Point(),new Point()); //TODO assume this request is the current one
@@ -121,7 +168,7 @@ public class Agent extends Entity {
 //			float aThreshold = 100.0f; //TODO define threshold somewhere else
 //			//found the best fitting new request. is the first user not annoyed ?
 //			if( minIncludingNewRequest - firstPickupToFirstDropDist <  aThreshold) {
-//				bestFittingRequest.appendOffer(this.ID); //TODO
+//				bestFittingRequest.appendOffer(this); //TODO
 //
 //			}
 //
@@ -143,43 +190,68 @@ public class Agent extends Entity {
 //			}
 //			//have found two requests with maximum shared distance.
 //			// TODO but, is this a feasible ride ? probably no...
-//			first.appendOffer(this.ID);
-//			second.appendOffer(this.ID);
+//			first.appendOffer(this);
+//			second.appendOffer(this);
 
-			state = AGENT_STATE.AWAITING_CONFIRMATION;
+			if(state == AGENT_STATE.OCCUPIED){
+				// leave state the same!
+			}else{
+				setState(AGENT_STATE.AWAITING_CONFIRMATION);
+			}
+
 
 		}else{
-			// do nothing, because already occupied
+			// do nothing, because already full
 		}
 
 
 	}
 
-	public void followRoute(){
-		if(state == AGENT_STATE.OCCUPIED){
+	public void act(){
+		if(state == AGENT_STATE.OCCUPIED || state == AGENT_STATE.FULL){
+
+			route = buildRoute();
 
 			if(route != null){
-				if(route.parent.pickUp){
-					for(User u: confirmed_users){
-						if(u.point==route.parent.point){
-							passengers.add(u);
+				if(route.parent != null) {
+
+					move(route.parent.getPoint());
+
+					if (route.parent.pickUp) {
+						for (User u : confirmed_users) {
+							if (u.point.equals(route.parent.point)) {
+								if (!passengers.contains(u)) {
+									passengers.add(u);
+									u.userPickedUp();
+								}
+							}
 						}
 					}
-				}
 
-				if(route.parent.dropOff){
-					for(User u: confirmed_users){
-						if(u.point==route.parent.point){
-							passengers.remove(u);
+					if (route.parent.dropOff) {
+
+						Iterator<User> iter = passengers.iterator();
+						while (iter.hasNext()) {
+							User u = iter.next();
+							if (u.target_position.equals(route.parent.point)) {
+								iter.remove();
+								confirmed_users.remove(u);
+								u.userDelivered();
+							}
+						}
+
+						if (confirmed_users.size() > 0) {
+							setState(AGENT_STATE.OCCUPIED);
+						} else {
+							setState(AGENT_STATE.IDLE);
 						}
 					}
-				}
 
 
-				move(route.parent.getPoint());
-				route = route.parent;
-				if(route.parent == null){
-					route = null;
+					route = route.parent;
+					if (route.parent == null) {
+						route = null;
+					}
 				}
 			}
 

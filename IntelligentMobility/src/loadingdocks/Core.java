@@ -14,6 +14,7 @@ public class Core {
     static Map<Integer, User> users = new HashMap<Integer, User>();
     static List<Request> requests = new LinkedList<Request>();
     static Board board;
+    static boolean resetLock = false;
 
 
     public static void initialize(Board b) {
@@ -21,10 +22,12 @@ public class Core {
     }
 
     public static void reset(){
+    	resetLock = true;
         agents.clear();
         users.clear();
         requests.clear();
         board.reset();
+        resetLock=false;
     }
 
     public static void registerToCore(Agent a){
@@ -96,17 +99,19 @@ public class Core {
 
         public void run() {
             while(true){
-                step();
+            	if(!resetLock) {
+            		step();
 
                 // step
                 // board.update()
 
 
-                try {
-                    sleep(time);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+	                try {
+	                    sleep(time);
+	                } catch (InterruptedException e) {
+	                    e.printStackTrace();
+	                }
+            	}
             }
         }
     }

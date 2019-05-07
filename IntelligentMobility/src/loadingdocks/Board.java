@@ -11,7 +11,7 @@ import loadingdocks.Block.Type;
 
 /**
  * Environment
- * @author Rui Henriques
+ * @author Kevin Corrales
  */
 public class Board {
 
@@ -24,10 +24,11 @@ public class Board {
 	private static List<User> users;
 	
 //	private static double wallPercentage = 0.5;
-	public static final int nVehicles = 1;
-	public static final int nUsers = 1;
+	public static final int nVehicles = 2;
+	public static final int nUsers = 15;
 	
 	private static Core core;
+	
 	
 	/****************************
 	 ***** A: SETTING BOARD *****
@@ -107,7 +108,7 @@ public class Board {
 			Point startP = getRandomStreetCell(MobType.DEFAULT);
 			Point targetP = getRandomStreetCell(MobType.DEFAULT);
 
-			users.add(new User(startP, targetP, Color.RED));
+			users.add(new User(startP, targetP, Color.RED,this, UserStrategy.ShortestPickup));
 		}
 		
 		/** C: create agents */
@@ -130,7 +131,7 @@ public class Board {
 			}
 
 			Point p = getRandomStreetCell(type);
-			vehicles.add(new Agent(p, yor,type,maxUsers,this));
+			vehicles.add(new Agent(p, yor,type,maxUsers,this,AgentStrategy.MinUnpaidTime));
 
 		}
 		objects = new Entity[nX][nY];
@@ -202,7 +203,7 @@ public class Board {
 
 	public static void step() {
 		removeObjects();
-		for(Agent a : vehicles) a.followRoute();
+		for(Agent a : vehicles) a.act();
 		displayObjects();
 		GUI.update();
 	}
@@ -304,9 +305,22 @@ public class Board {
 	public Node shortestPath(Point src, List<Point> pickups, List<Point> destinations) {
 		if(pickups.size()==0)
 			return null;
-		int[] order = shortestPathOrder(src,pickups,destinations,null,0); 
-		List<Node> completePath = new ArrayList<Node>();
-		completePath.add(shortestPath(src,pickups.get(order[0])));
+
+
+		List<Integer> invalid_pickups = new LinkedList<Integer>();
+
+		for(int i = 0;i<pickups.size();i++){
+			if(pickups.get(i).x == -1){
+				pickups.set(i,destinations.get(i));
+				invalid_pickups.add(i);
+			}
+		}
+
+
+		int[] order = shortestPathOrder(src,pickups,destinations,null,0);
+		List<Node> completePath = new LinkedList<Node>();
+		completePath.add(shortestPath(src,pickups.get(0)));
+
 		for(int i=0; i<order.length;i++) {
 			Node innerPath = shortestPath(pickups.get(order[i]),destinations.get(order[i]));
 			completePath.add(innerPath);
@@ -336,16 +350,20 @@ public class Board {
 
 		tmp = start_node;
 		while(tmp!=null){
+
 			if(pickups.contains(tmp.point)){
 				tmp.setPickUp();
 			}
 			if(destinations.contains(tmp.point)){
 				tmp.setDropOff();
 			}
+
+			//System.out.println((tmp.point).toString()+" pickup: "+tmp.pickUp+" dropoff: "+tmp.dropOff);
+
 			tmp = tmp.parent;
 		}
 
-
+		//System.out.println();
 		return start_node;
 	}
 
