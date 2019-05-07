@@ -11,7 +11,7 @@ public class Agent extends Entity {
 
 	static int id_count = 0;
 	int ID;
-
+    AgentStrategy strategy;
 	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
 
 	public AGENT_STATE state = AGENT_STATE.IDLE;
@@ -34,7 +34,14 @@ public class Agent extends Entity {
 		Core.registerToCore(this);
 		type = pType;
 		this.referenceToBoard = boardReference;
+		strategy = AgentStrategy.MinUnpaidTime;
 	}
+
+    public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference, AgentStrategy agentStrategy ) {
+        this(point,color,pType,countUsers,boardReference);
+        strategy = agentStrategy;
+    }
+
 
 	public Board.Node buildRoute(){
 
@@ -95,20 +102,22 @@ public class Agent extends Entity {
 			float currentLength;
 			Request maxPaidTime = null;
 			for (Request request : requestList) {
-				float currentDist = (float)this.point.distance(request.initPosition);
+				float currentDist = referenceToBoard.pathLength( referenceToBoard.shortestPath(this.point, request.initPosition));
 				if (currentDist < minDist) {
 					minDistToPickup = request;
 					minDist = currentDist;
 				}
-				currentLength = (float) request.initPosition.distance(request.targetPosition);
+				currentLength = referenceToBoard.pathLength( referenceToBoard.shortestPath(request.initPosition, request.targetPosition));
 				if(currentLength > maxLength) {
 					maxLength = currentLength;
 					maxPaidTime = request;
 				}
 			}
-			//TODO accept them both?
-			minDistToPickup.appendOffer(this	);
-			maxPaidTime.appendOffer(this);
+            if(strategy == AgentStrategy.MinUnpaidTime)
+			    minDistToPickup.appendOffer(this	);
+            else
+			    maxPaidTime.appendOffer(this);
+
 
 //			//assuming the agent already has an accepted request and thinks about accepting another one:
 //			Request oldRequest = new Request(Integer.MAX_VALUE,new Point(),new Point()); //TODO assume this request is the current one
