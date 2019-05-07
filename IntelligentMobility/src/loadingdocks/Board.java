@@ -24,8 +24,8 @@ public class Board {
 	private static List<User> users;
 	
 //	private static double wallPercentage = 0.5;
-	public static final int nVehicles = 1;
-	public static final int nUsers = 8;
+	public static final int nVehicles = 2;
+	public static final int nUsers = 15;
 	
 	private static Core core;
 	
@@ -352,12 +352,12 @@ public class Board {
 				tmp.setDropOff();
 			}
 
-			System.out.println((tmp.point).toString()+" pickup: "+tmp.pickUp+" dropoff: "+tmp.dropOff);
+			//System.out.println((tmp.point).toString()+" pickup: "+tmp.pickUp+" dropoff: "+tmp.dropOff);
 
 			tmp = tmp.parent;
 		}
 
-		System.out.println();
+		//System.out.println();
 		return start_node;
 	}
 

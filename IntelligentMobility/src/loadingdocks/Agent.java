@@ -15,7 +15,7 @@ public class Agent extends Entity {
 	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
 
 	public AGENT_STATE state = AGENT_STATE.IDLE;
-	public int capacity = 7;
+	public int capacity = 4;
 
 	public List<User> confirmed_users = new LinkedList<User>();
 	public List<User> passengers = new LinkedList<User>();
@@ -177,52 +177,46 @@ public class Agent extends Entity {
 
 			route = buildRoute();
 
-			move(route.parent.getPoint());
-
 			if(route != null){
-				if(route.parent.pickUp){
-					for(User u: confirmed_users){
-						if(u.point.equals(route.parent.point)){
-							if(!passengers.contains(u)){
-								passengers.add(u);
-								u.userPickedUp();
+				if(route.parent != null) {
+
+					move(route.parent.getPoint());
+
+					if (route.parent.pickUp) {
+						for (User u : confirmed_users) {
+							if (u.point.equals(route.parent.point)) {
+								if (!passengers.contains(u)) {
+									passengers.add(u);
+									u.userPickedUp();
+								}
 							}
 						}
 					}
-				}
 
-				if(route.parent.dropOff){
+					if (route.parent.dropOff) {
 
-					Iterator<User> iter = passengers.iterator();
-					while(iter.hasNext()){
-						User u = iter.next();
-						if(u.target_position.equals(route.parent.point)){
-							iter.remove();
-							u.userDelivered();
-							confirmed_users.remove(u); // confirmed_users.remove(u);
+						Iterator<User> iter = passengers.iterator();
+						while (iter.hasNext()) {
+							User u = iter.next();
+							if (u.target_position.equals(route.parent.point)) {
+								iter.remove();
+								confirmed_users.remove(u);
+								u.userDelivered();
+							}
+						}
+
+						if (confirmed_users.size() > 0) {
+							state = AGENT_STATE.OCCUPIED;
+						} else {
+							state = AGENT_STATE.IDLE;
 						}
 					}
 
-//					for(User u: confirmed_users){
-//						if(u.target_position==route.parent.point){
-//							passengers.remove(u);
-//							confirmed_users.remove(u);
-//							u.userDelivered();
-//						}
-//					}
 
-					if(confirmed_users.size()>0){
-						state = AGENT_STATE.OCCUPIED;
-					}else{
-						state = AGENT_STATE.IDLE;
+					route = route.parent;
+					if (route.parent == null) {
+						route = null;
 					}
-				}
-
-
-
-				route = route.parent;
-				if(route.parent == null){
-					route = null;
 				}
 			}
 
