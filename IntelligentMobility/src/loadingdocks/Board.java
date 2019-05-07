@@ -344,16 +344,20 @@ public class Board {
 
 		tmp = start_node;
 		while(tmp!=null){
+
 			if(pickups.contains(tmp.point)){
 				tmp.setPickUp();
 			}
 			if(destinations.contains(tmp.point)){
 				tmp.setDropOff();
 			}
+
+			System.out.println((tmp.point).toString()+" pickup: "+tmp.pickUp+" dropoff: "+tmp.dropOff);
+
 			tmp = tmp.parent;
 		}
 
-
+		System.out.println();
 		return start_node;
 	}
 

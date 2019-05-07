@@ -180,7 +180,7 @@ public class Agent extends Entity {
 			if(route != null){
 				if(route.parent.pickUp){
 					for(User u: confirmed_users){
-						if(u.point==route.parent.point){
+						if(u.point.equals(route.parent.point)){
 							if(!passengers.contains(u)){
 								passengers.add(u);
 								u.userPickedUp();
@@ -191,13 +191,13 @@ public class Agent extends Entity {
 
 				if(route.parent.dropOff){
 
-					Iterator<User> iter = confirmed_users.iterator();
+					Iterator<User> iter = passengers.iterator();
 					while(iter.hasNext()){
 						User u = iter.next();
-						if(u.target_position==route.parent.point){
-							passengers.remove(u);
+						if(u.target_position.equals(route.parent.point)){
+							iter.remove();
 							u.userDelivered();
-							iter.remove(); // confirmed_users.remove(u);
+							confirmed_users.remove(u); // confirmed_users.remove(u);
 						}
 					}
 
