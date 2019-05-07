@@ -61,7 +61,7 @@ public class Agent extends Entity {
 			targets.add(u.target_position);
 		}
 
-		Board.Node paths = referenceToBoard.shortestPath(point,pick_ups,targets);
+		Board.Node paths = referenceToBoard.shortestPathComplex(point,pick_ups,targets);
 
 		return paths;
 	}

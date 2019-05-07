@@ -267,10 +267,11 @@ public class Board {
 		}
 
 	}
+	
 		
 	public static Node shortestPath(Point src, Point dest) {
 
-		if(src==dest){
+		if(src==dest || dest.x<1 || dest.y<1){
 			return null;
 		}
 
@@ -378,7 +379,7 @@ public class Board {
 		}
 		float min = Integer.MAX_VALUE;
 		for(int i = 0;i<pickups.size();i++) {
-			if(!containsIndex(order,i)) {
+			if(!containsIndex(order,i) && (pickups.get(i).x!=-1 && pickups.get(i).y!=-1)) {
 				Node node = shortestPath(src,pickups.get(i));
 				float pathLength = pathLength(node);
 				if( pathLength<=min) {
@@ -411,7 +412,7 @@ public class Board {
 	}
 	
 	public Node shortestPathComplex(Point src, List<Point> pickups, List<Point> destinations) {
-		if(pickups.size()==0)
+		if(pickups.size()==0 || src.x<1 ||src.y<1)
 			return null;
 		String[] order = shortestPathOrderComplex(src,pickups,destinations,null,0); 
 		List<Node> completePath = new LinkedList<Node>();
@@ -461,7 +462,7 @@ public class Board {
 		float min = Integer.MAX_VALUE;
 		Point nextPoint=null;
 		for(int i = 0;i<pickups.size();i++) {
-			if(!containsIndexComplex(order,"P"+i)) {
+			if(!containsIndexComplex(order,"P"+i) && (pickups.get(i).x!=-1 && pickups.get(i).y!=-1)) {
 				Node node = shortestPath(src,pickups.get(i));
 				float pathLength = pathLength(node);
 				if( pathLength<=min) {
@@ -469,7 +470,7 @@ public class Board {
 					order[currentIndex]="P"+i;
 					nextPoint=pickups.get(i);
 				}
-			}else if(!containsIndexComplex(order,"D"+i)) {
+			}else if(!containsIndexComplex(order,"D"+i) || pickups.get(i).x==-1 || pickups.get(i).y==-1) {
 				Node node = shortestPath(src,destinations.get(i));
 				float pathLength = pathLength(node);
 				if( pathLength<=min) {
