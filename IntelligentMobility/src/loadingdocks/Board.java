@@ -104,7 +104,7 @@ public class Board {
 			Point startP = getRandomStreetCell(MobType.DEFAULT);
 			Point targetP = getRandomStreetCell(MobType.DEFAULT);
 
-			users.add(new User(startP, targetP, Color.RED));
+			users.add(new User(startP, targetP, Color.RED,this, UserStrategy.ShortestPickup));
 		}
 		
 		/** C: create agents */
