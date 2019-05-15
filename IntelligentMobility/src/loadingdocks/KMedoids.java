@@ -1,24 +1,20 @@
 package loadingdocks;
 
 import cern.colt.list.IntArrayList;
+import cern.colt.matrix.DoubleFactory2D;
+import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.doublealgo.Statistic;
 import cern.colt.matrix.doublealgo.Statistic.VectorVectorFunction;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
+
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-/**
- * Also known as: PAM (Partitioning around medoids) 
- * It is more robust to noise and outliers
- * See: http://en.wikipedia.org/wiki/K-medoids
- * Also See: Computational Complexity between K-Means and K-Medoids Clustering Algorithms
- *             for Normal and Uniform Distributions of Data Points
- * T. Velmurugan and T. Santhanam
- * Department of Computer Science, DG Vaishnav College, Chennai, India
- * @author tgee
- */
 public class KMedoids implements ClusterAlgorithm {
    
    private DoubleMatrix2D partition;
@@ -30,7 +26,10 @@ public class KMedoids implements ClusterAlgorithm {
    }
 
    @Override
-   public  void cluster(DoubleMatrix2D data, int clusters) {
+   public void cluster(List<User> users, int clusters) {
+	   
+	  DoubleMatrix2D data = createMatrix(users);
+	   
       int n = data.rows(); // Number of features
       int p = data.columns(); // Dimensions of features
 
@@ -45,7 +44,7 @@ public class KMedoids implements ClusterAlgorithm {
       // Choose the medoids by shuffling the data
       for (int i = 0; i < clusters; ++i) {
          // k is the index of the remaining possibilities
-         UniformIntegerDistribution uniform = new UniformIntegerDistribution(i, clusters - 1);
+         UniformIntegerDistribution uniform = new UniformIntegerDistribution(i, clusters );
          int k = uniform.sample();
 
          // Swap x(i) and x(k)
@@ -118,6 +117,21 @@ public class KMedoids implements ClusterAlgorithm {
       }
    }
    
+   private DoubleMatrix2D createMatrix(List<User> users) {
+	   double[][] values = new double[users.size()][4];
+	   for(int i = 0; i <values.length;i++) {
+			   values[i][0] = users.get(i).point.getX();
+			   values[i][1] = users.get(i).point.getY();
+			   values[i][2] = users.get(i).getTarget_position().getX();
+			   values[i][3] = users.get(i).getTarget_position().getY();
+	   }
+	   
+	   DoubleMatrix2D matrix = DoubleFactory2D.dense.make(values);
+	   
+	   System.out.println(matrix);
+	   return matrix.assign(values);
+   }
+
    public  IntArrayList getMedoids() {
       return medoids;
    }
@@ -143,4 +157,7 @@ public class KMedoids implements ClusterAlgorithm {
    public  void setDistanceMeasure(VectorVectorFunction distanceMeasure) {
       this.distanceMeasure = distanceMeasure;
    }
+   
+  
+
 }
