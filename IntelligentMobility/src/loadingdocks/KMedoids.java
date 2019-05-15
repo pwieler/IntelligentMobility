@@ -21,13 +21,14 @@ public class KMedoids implements ClusterAlgorithm {
    private int maxIterations = 1000;
    private IntArrayList medoids;
    private VectorVectorFunction distanceMeasure = Statistic.EUCLID;
+   private int clusters;
 
    public  KMedoids() {
    }
 
    @Override
    public void cluster(List<User> users, int clusters) {
-	   
+	  this.clusters = clusters;
 	  DoubleMatrix2D data = createMatrix(users);
 	   
       int n = data.rows(); // Number of features
@@ -128,7 +129,6 @@ public class KMedoids implements ClusterAlgorithm {
 	   
 	   DoubleMatrix2D matrix = DoubleFactory2D.dense.make(values);
 	   
-	   System.out.println(matrix);
 	   return matrix.assign(values);
    }
 
@@ -158,6 +158,15 @@ public class KMedoids implements ClusterAlgorithm {
       this.distanceMeasure = distanceMeasure;
    }
    
+   public List<User> userDefineCluster(List<User> users) {
+	   for(int i=0; i<users.size(); i++) {
+		   for(int j=0;j<clusters;j++) {
+			   if(partition.get(i,j)==1)
+				   users.get(i).setCluster(j+1);
+		   }
+	   }
+	   return users;
+   }
   
 
 }
