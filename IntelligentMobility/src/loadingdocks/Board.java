@@ -85,24 +85,46 @@ public class Board {
 		*/
 		
 		/**Create Map **/
+//		for(int i = 0;i<nX;i++) {
+//			for(int j = 0; j<nY;j++) {
+//				if( (i==0 || j==0 || i==nX-1 || j==nY-1
+//						|| i<nX/4 && j<nY/2 && i>nX/11 && j>nY/11) || (i>nX/4 && i<nX/2 && j>0 && j<nY/4)
+//						|| (i>nX/4 && i<nX/2 && j<nY*3/4 && j>nY/4) || (i<nX/3 && i>nX/6 && j>nY/2 && j<nY-1)
+//						|| (i<nX/6 && i>0 && j>nY/2 && j<nY*2/3) || (i<nX/6 && i>0 && j<nY-2 && j>nY*2/3)
+//						|| (i<nX/6 && i>0 && j==nY-1) || ( i>nX/3 && i<nX/2 && j<nY-2 && j>nY*3/4)
+//						|| (i<nX*4/5 && i>nX/3 && j==nY-1) || (i<nX*3/4 && i>nX/2 && j>nY*3/4)
+//						|| (i<nX*3/5 && i>nX/2 && j>nY/3 && j<nY*3/4) || (i>nX*3/5 && i<nX*4/5 && j>nY/2 && j<nY*3/4)
+//						|| (i>nX*3/5 && i<nX*5/7 && j>nY/3 && j<nY*3/4) || (i>nX/2 && i<nX*6/7 && j>nY/8 && j<nY/3 )
+//						|| (i>nX/2 && i<nX*2/3 && j<nY/8 ) || (i>nX*4/6 && i<nX*6/7  && j<nY/8 )
+//						|| ( i>nX*6/7 && j<nY/3 ) || ( i>nX*7/10 && i<nX-1 && j>nY/3 && j<nY/2)
+//						|| ( i>nX*8/10 && i<nX-2 && j>nY/3 && j<nY-2)
+//						|| ( i<nX*5/6 && i>nX/2 && j<nY-2 && j>nY*3/4))
+//					board[i][j] = new Block(Type.building, Color.gray);
+//			}
+//
+//		}
+
+		// Everything full
 		for(int i = 0;i<nX;i++) {
 			for(int j = 0; j<nY;j++) {
-				if( (i==0 || j==0 || i==nX-1 || j==nY-1
-						|| i<nX/4 && j<nY/2 && i>nX/11 && j>nY/11) || (i>nX/4 && i<nX/2 && j>0 && j<nY/4)
-						|| (i>nX/4 && i<nX/2 && j<nY*3/4 && j>nY/4) || (i<nX/3 && i>nX/6 && j>nY/2 && j<nY-1)
-						|| (i<nX/6 && i>0 && j>nY/2 && j<nY*2/3) || (i<nX/6 && i>0 && j<nY-2 && j>nY*2/3) 
-						|| (i<nX/6 && i>0 && j==nY-1) || ( i>nX/3 && i<nX/2 && j<nY-2 && j>nY*3/4)
-						|| (i<nX*4/5 && i>nX/3 && j==nY-1) || (i<nX*3/4 && i>nX/2 && j>nY*3/4)
-						|| (i<nX*3/5 && i>nX/2 && j>nY/3 && j<nY*3/4) || (i>nX*3/5 && i<nX*4/5 && j>nY/2 && j<nY*3/4)
-						|| (i>nX*3/5 && i<nX*5/7 && j>nY/3 && j<nY*3/4) || (i>nX/2 && i<nX*6/7 && j>nY/8 && j<nY/3 )
-						|| (i>nX/2 && i<nX*2/3 && j<nY/8 ) || (i>nX*4/6 && i<nX*6/7  && j<nY/8 )
-						|| ( i>nX*6/7 && j<nY/3 ) || ( i>nX*7/10 && i<nX-1 && j>nY/3 && j<nY/2)
-						|| ( i>nX*8/10 && i<nX-2 && j>nY/3 && j<nY-2)  
-						|| ( i<nX*5/6 && i>nX/2 && j<nY-2 && j>nY*3/4))
 					board[i][j] = new Block(Type.building, Color.gray);
 			}
-
 		}
+
+		for(int c = 0; c < 5; c++){
+			int rX = ((int)(Math.random()*(nX-2)/2+1))*2;
+			for(int j = 1; j<nY-1;j++) {
+				board[rX][j] = new Block(Block.Type.free, Color.lightGray);
+			}
+
+			int rY = ((int)(Math.random()*(nY-2)/2+1))*2;
+			for(int i = 1; i<nX-1;i++) {
+				board[i][rY] = new Block(Block.Type.free, Color.lightGray);
+			}
+		}
+
+
+
 		
 		
 		/** Add Users */
