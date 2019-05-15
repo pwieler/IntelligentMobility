@@ -2,18 +2,16 @@ package loadingdocks;
 
 import cern.colt.list.IntArrayList;
 import cern.colt.matrix.DoubleFactory2D;
-import cern.colt.matrix.DoubleMatrix1D;
 import cern.colt.matrix.DoubleMatrix2D;
 import cern.colt.matrix.doublealgo.Statistic;
 import cern.colt.matrix.doublealgo.Statistic.VectorVectorFunction;
 import cern.colt.matrix.impl.SparseDoubleMatrix2D;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
-import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
 
 public class KMedoids implements ClusterAlgorithm {
    
@@ -21,7 +19,9 @@ public class KMedoids implements ClusterAlgorithm {
    private int maxIterations = 1000;
    private IntArrayList medoids;
    private VectorVectorFunction distanceMeasure = Statistic.EUCLID;
+   
    private int clusters;
+   HashMap<Integer,Integer> clusterValues = new HashMap<Integer,Integer>();
 
    public  KMedoids() {
    }
@@ -30,9 +30,11 @@ public class KMedoids implements ClusterAlgorithm {
    public void cluster(List<User> users, int clusters) {
 	  this.clusters = clusters;
 	  DoubleMatrix2D data = createMatrix(users);
+	  
+	  System.out.println(data);
 	   
       int n = data.rows(); // Number of features
-      int p = data.columns(); // Dimensions of features
+//      int p = data.columns(); // Dimensions of features
 
       partition = new SparseDoubleMatrix2D(n, clusters);
       medoids = new IntArrayList(clusters);
@@ -163,10 +165,26 @@ public class KMedoids implements ClusterAlgorithm {
 		   for(int j=0;j<clusters;j++) {
 			   if(partition.get(i,j)==1)
 				   users.get(i).setCluster(j+1);
+			   
+			   if(clusterValues.get(j+1)!=null)
+				   clusterValues.put(j+1,clusterValues.get(j+1)+1);
+			   else
+				   clusterValues.put(j+1,1);
 		   }
 	   }
 	   return users;
    }
+   
+   public int getClusterWeight(int cluster) {
+	   int weight= 0;
+	   clusterValues.entrySet().stream().sorted(Map.Entry.<Integer, Integer>comparingByValue());
+	   for(int clusterIndex : clusterValues.keySet()) {
+		   weight++;
+		   if(clusterIndex==cluster)
+			   return weight;
+	   }
+		   
+	   return weight;
+   }
   
-
 }
