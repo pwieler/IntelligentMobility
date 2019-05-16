@@ -20,6 +20,8 @@ public class Agent extends Entity {
 
 	public List<User> confirmed_users = new LinkedList<User>();
 	public List<User> passengers = new LinkedList<User>();
+	public List<User> tmp_passengers = new LinkedList<User>();
+
 	Board.Node route=null;
 
 	private MobType type;
@@ -50,10 +52,17 @@ public class Agent extends Entity {
 
 		List<Point> pick_ups = new LinkedList<Point>();
 		List<Point> targets = new LinkedList<Point>();
+		List<Point> tmp_destinations = new LinkedList<Point>();
+
+		for(User u:tmp_passengers){
+			tmp_destinations.add(u.target_position);
+		}
 
 		for(User u: confirmed_users){
 			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
 				pick_ups.add(new Point(-1,-1));
+			}else if(u.state == User.USER_STATE.INTERMEDIATE_STOP){
+				pick_ups.add(u.intermediate_stop);
 			}else{
 				pick_ups.add(u.point);
 			}
@@ -61,7 +70,7 @@ public class Agent extends Entity {
 			targets.add(u.target_position);
 		}
 
-		Board.Node paths = referenceToBoard.shortestPathComplex(point,pick_ups,targets);
+		Board.Node paths = referenceToBoard.shortestPathComplex(point,pick_ups,targets,tmp_destinations);
 
 		return paths;
 	}
@@ -76,13 +85,11 @@ public class Agent extends Entity {
 			user_request.match(this.ID);
 			confirmed_users.add(Core.users.get(user_request.userID));
 
-			if(confirmed_users.size()>=capacity){
+			if(confirmed_users.size()>=capacity-1){
 				setState(AGENT_STATE.FULL);
 			}else{
 				setState(AGENT_STATE.OCCUPIED);
 			}
-
-
 
 			return true;
 		}
@@ -207,20 +214,146 @@ public class Agent extends Entity {
 
 	}
 
+	public List<Point> routeToList(Board.Node start_node, Point endPoint){
+		List<Point> routeList = new LinkedList<Point>();
+
+		Board.Node tmp = start_node;
+		while(tmp!=null){
+			routeList.add(tmp.getPoint());
+
+			if(tmp.equals(endPoint)){
+				break;
+			}
+			tmp = tmp.parent;
+		}
+
+		return routeList;
+	}
+
+	public List<Point> checkRouteWithoutPickingUpPassenger(User u_c){
+
+		// Returns route until target_location of user without picking up!
+		// --> Later here we can e.g. also decide that its better if the other agent brings the passenger also to the target!
+
+		List<Point> pick_ups = new LinkedList<Point>();
+		List<Point> targets = new LinkedList<Point>();
+		List<Point> tmp_destinations = new LinkedList<Point>();
+
+		for(User u:tmp_passengers){
+			tmp_destinations.add(u.target_position);
+		}
+
+		for(User u: confirmed_users){
+			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED || u.equals(u_c)){
+				pick_ups.add(new Point(-1,-1));
+			}else{
+				pick_ups.add(u.point);
+			}
+
+			targets.add(u.target_position);
+		}
+
+		return routeToList(referenceToBoard.shortestPathComplex(point,pick_ups,targets,tmp_destinations),u_c.target_position);
+	}
+
+	public void cooperate(){
+		User u = sense(route.parent.getPoint());
+		if(u!=null && !confirmed_users.contains(u)){
+			System.out.println("now");
+			//pickUp(sensed_u, false);
+
+			if(u.MATCHED){
+				// Calculate peer_agent_route_without picking up!
+				List<Point> new_route_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u);
+
+				// See where it intersects with our route!
+				Board.Node tmp = route;
+				Point intersection = point;
+
+				int tmp_capacity = passengers.size() + 1; // Current capacity + the one user that we pick up now!
+				int steps = 0;
+				int index;
+
+				boolean deliverUser = false;
+
+				while(tmp!=null){
+
+					if(tmp.pickUp){
+						tmp_capacity++;
+					}
+					if(tmp.dropOff){
+						tmp_capacity--;
+					}
+
+					// Search for an intersection of peer_agent route and our route!
+					index = new_route_peer_agent.indexOf(tmp.getPoint());
+					if(index!=-1 && index >= steps){
+						intersection = tmp.getPoint();
+					}
+
+					// If current tmp is the target_location just stop!
+					if(tmp.getPoint().equals(u.target_position)){
+						intersection = tmp.getPoint();
+						deliverUser = true;
+						break;
+					}
+
+					// If car is too full --> user has to go off!
+					if(tmp_capacity>=capacity){
+						intersection = tmp.getPoint();
+						break;
+					}
+
+					tmp = tmp.parent;
+					steps++;
+				}
+
+				// We reach intersection point in "steps"!
+
+				if(deliverUser){
+					// This agent delivers the user to its goal --> put him to confirmed_users and add him to passengers!
+					// Tell peer agent that he doesn't need to deliver him anymore!
+				}else{
+					if(intersection.equals(point)){
+						// do nothing
+						// peer agent goes through that cell anyways --> so no need to pick him up!
+						// (still it could be good to move him closer to the target and maybe other agents bring him again further!)
+						// but:
+						// this is the only intersection!! --> so if we move the agent somewhere else the peer agent has to do a detour!
+					}else{
+						// drive user to intersection, drop him there!
+						// tell peer agent where to pick user up! (intersection point!)
+					}
+				}
+
+
+
+			}
+
+
+		}
+	}
+
 	public void act(){
 		if(state == AGENT_STATE.OCCUPIED || state == AGENT_STATE.FULL){
 
+			// Replan
 			route = buildRoute();
 
 			if(route != null){
 				if(route.parent != null) {
 
+					// Try to cooperate
+					cooperate();
+
+					// Move to next route element
 					move(route.parent.getPoint());
 
+					// Check if pickup possible
 					if (route.parent.pickUp) {
 						for (User u : confirmed_users) {
 							if (u.point.equals(route.parent.point)) {
-								if (!passengers.contains(u)) {
+								if (!passengers.contains(u) && passengers.size()<capacity) {
 									passengers.add(u);
 									u.userPickedUp();
 								}
@@ -228,6 +361,7 @@ public class Agent extends Entity {
 						}
 					}
 
+					// Check if dropOff possible
 					if (route.parent.dropOff) {
 
 						Iterator<User> iter = passengers.iterator();
@@ -247,7 +381,7 @@ public class Agent extends Entity {
 						}
 					}
 
-
+					// Update route
 					route = route.parent;
 					if (route.parent == null) {
 						route = null;
@@ -272,6 +406,10 @@ public class Agent extends Entity {
 			}
 		}
 		point = target;
+	}
+
+	public User sense(Point p){
+		return referenceToBoard.checkCellForUser(p);
 	}
 
 

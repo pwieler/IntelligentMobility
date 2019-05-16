@@ -6,8 +6,16 @@ import java.util.List;
 
 public class User extends Entity {
 
-	public enum USER_STATE {WAITING,PICKED_UP,DELIVERED};
+	public enum USER_STATE {WAITING,INTERMEDIATE_STOP,PICKED_UP,DELIVERED};
 	public USER_STATE state = USER_STATE.WAITING;
+
+	public boolean MATCHED = false;
+	public Agent matched_agent;
+
+
+	Point intermediate_stop;
+	int steps_to_intermediate_stop;
+
 
 	static int id_count = 0;
 	int ID;
@@ -44,11 +52,9 @@ public class User extends Entity {
 
 	public boolean processOffers() {
 
-		boolean match_state = false;
-
 		try {
             // if no match --> take next offer --> until match!
-		    while ( !match_state && myRequest.offers.size() != 0) {
+		    while ( !MATCHED && myRequest.offers.size() != 0) {
                 if (strategy == UserStrategy.ShortestPickup) {
                     //choose offer with shortest euclidian distance (NOT shortest path, could also be an option)
                     myRequest.offers.sort((Agent offeringAgent1, Agent offeringAgent2) -> {
@@ -64,12 +70,13 @@ public class User extends Entity {
                     });
                 }
 
-                match_state = myRequest.offers.get(0).confirmMatch(myRequest);
+				MATCHED = myRequest.offers.get(0).confirmMatch(myRequest);
 
-                if (!match_state) {
+                if (!MATCHED) {
                     myRequest.offers.remove(0);
-                }
-
+                }else{
+                	matched_agent = Core.agents.get(myRequest.matchedAgentID);
+				}
 
             }
 
@@ -77,8 +84,17 @@ public class User extends Entity {
 
 		}
 
+		return MATCHED;
+	}
 
-		return match_state;
+	public void userCooperationStart(){
+		color = Color.PINK;
+		state = USER_STATE.INTERMEDIATE_STOP;
+	}
+
+	public void userCooperationEnd(){
+		color = Color.RED;
+		state = USER_STATE.WAITING;
 	}
 
 	public void userPickedUp(){

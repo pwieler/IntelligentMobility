@@ -332,7 +332,7 @@ public class Board {
 		if(pickups.size()==0)
 			return null;
 
-
+		// Overwrite invalid pickups (user that are already picked up) with destination!
 		List<Integer> invalid_pickups = new LinkedList<Integer>();
 
 		for(int i = 0;i<pickups.size();i++){
@@ -433,9 +433,18 @@ public class Board {
 		}
 	}
 	
-	public Node shortestPathComplex(Point src, List<Point> pickups, List<Point> destinations) {
+	public Node shortestPathComplex(Point src, List<Point> pickups, List<Point> destinations, List<Point> destinations_tmp_passenger) {
 		if(pickups.size()==0 || src.x<1 ||src.y<1)
 			return null;
+
+		// Overwrite invalid pickups (user that are already picked up) with destination!
+		for(int i = 0;i<pickups.size();i++){
+			if(pickups.get(i).x == -1){
+				pickups.set(i,destinations.get(i));
+			}
+		}
+
+
 		String[] order = shortestPathOrderComplex(src,pickups,destinations,null,0); 
 		List<Node> completePath = new LinkedList<Node>();
 		completePath.add(shortestPath(src,getNextPoint(order[0],pickups,destinations)));
@@ -448,6 +457,10 @@ public class Board {
 		// Make List of paths to one path!
 		Node start_node = completePath.get(0);
 		Node tmp = start_node;
+
+		if(start_node == null){
+			System.out.println("null");
+		}
 
 		int i = 0;
 		while(i < completePath.size()-1){
@@ -468,6 +481,9 @@ public class Board {
 				tmp.setPickUp();
 			}
 			if(destinations.contains(tmp.point)){
+				tmp.setDropOff();
+			}
+			if(destinations_tmp_passenger.contains(tmp.point)){
 				tmp.setDropOff();
 			}
 			tmp = tmp.parent;
@@ -518,6 +534,14 @@ public class Board {
 				return false;
 		}
 		return false;
+	}
+
+	public User checkCellForUser(Point p){
+		if(objects[p.x][p.y] instanceof User){
+			return (User) objects[p.x][p.y];
+		}else{
+			return null;
+		}
 	}
 	
 	
