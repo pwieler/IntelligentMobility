@@ -49,22 +49,18 @@ public class User extends Entity {
 		try {
             // if no match --> take next offer --> until match!
 		    while ( !match_state && myRequest.offers.size() != 0) {
+		    	Agent bestOffer = myRequest.offers.get(0); //default
                 if (strategy == UserStrategy.ShortestPickup) {
-                    //choose offer with shortest euclidian distance (NOT shortest path, could also be an option)
-                    myRequest.offers.sort((Agent offeringAgent1, Agent offeringAgent2) -> {
-
-                        return referenceToBoard.pathLength(Board.shortestPath(offeringAgent1.point, this.point)) <
-                                referenceToBoard.pathLength(Board.shortestPath(offeringAgent2.point, this.point)) ? -1 : 1;
-                    });
+					bestOffer = new ShortestPickupOfferUtilityCalculator(myRequest.offers,referenceToBoard,this.point).calculateMaxUtility();
                 } else if (strategy == UserStrategy.Loner) {
-                    //choose offer with as less current users  as possible (i want to be alone in the taxi!)
-                    myRequest.offers.sort((Agent offeringAgent1, Agent offeringAgent2) -> {
-                        return offeringAgent1.confirmed_users.size() <
-                                offeringAgent2.confirmed_users.size() ? -1 : 1;
-                    });
-                }
+					bestOffer = new LonerOfferUtilityCalculator(myRequest.offers,referenceToBoard).calculateMaxUtility();
+                } else if (strategy == UserStrategy.MostPassengers) {
+					bestOffer = new MostPassengersOfferUtilityCalculator(myRequest.offers,referenceToBoard).calculateMaxUtility();
+				} else if (strategy == UserStrategy.TimeStressed) {
+                	bestOffer = new TimeStressedOfferUtilityCalculator(myRequest.offers,referenceToBoard).calculateMaxUtility();
+				}
 
-                match_state = myRequest.offers.get(0).confirmMatch(myRequest);
+                match_state = bestOffer.confirmMatch(myRequest);
 
                 if (!match_state) {
                     myRequest.offers.remove(0);

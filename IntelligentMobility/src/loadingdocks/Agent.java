@@ -95,11 +95,11 @@ public class Agent extends Entity {
 
 		    if(confirmed_users.isEmpty()) {
                 if (strategy == AgentStrategy.MinUnpaidTime) {
-                    MinUnpaidTimeUtilityCalculator calc = new MinUnpaidTimeUtilityCalculator(requestList, referenceToBoard, this.point);
+                    MinUnpaidTimeRequestUtilityCalculator calc = new MinUnpaidTimeRequestUtilityCalculator(requestList, referenceToBoard, this.point);
                     calc.calculateMaxUtilityRequest().appendOffer(this);
                 }
                 else {
-                    MaxPaidTimeUtilityCalculator calc = new MaxPaidTimeUtilityCalculator(requestList,referenceToBoard);
+                    MaxPaidTimeRequestUtilityCalculator calc = new MaxPaidTimeRequestUtilityCalculator(requestList,referenceToBoard);
                     calc.calculateMaxUtilityRequest().appendOffer(this);
                 }
             } else {

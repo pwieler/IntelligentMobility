@@ -2,13 +2,11 @@ package loadingdocks;
 
 import java.util.List;
 
-public class MaxPaidTimeUtilityCalculator extends UtilityCalculator {
+public class MaxPaidTimeRequestUtilityCalculator extends RequestUtilityCalculator {
 
-    private List<Request> requests;
-    private Board board;
-    public MaxPaidTimeUtilityCalculator(List<Request> requestList, Board referenceToBoard) {
-        board  = referenceToBoard;
-        requests = requestList;
+
+    public MaxPaidTimeRequestUtilityCalculator(List<Request> requestList, Board referenceToBoard) {
+        super(requestList,referenceToBoard);
     }
 
     @Override

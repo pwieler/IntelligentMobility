@@ -2,5 +2,7 @@ package loadingdocks;
 
 public enum UserStrategy {
     Loner,
-    ShortestPickup
+    ShortestPickup,
+    MostPassengers,
+    TimeStressed
 }

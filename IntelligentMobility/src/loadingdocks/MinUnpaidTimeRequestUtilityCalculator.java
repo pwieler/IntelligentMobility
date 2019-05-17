@@ -3,15 +3,13 @@ package loadingdocks;
 import java.util.List;
 import java.awt.Point;
 
-public class MinUnpaidTimeUtilityCalculator extends UtilityCalculator{
+public class MinUnpaidTimeRequestUtilityCalculator extends RequestUtilityCalculator {
 
-    private List<Request> requests;
-    private Board board;
+
     private Point myPos;
-    public MinUnpaidTimeUtilityCalculator(List<Request> requestList, Board referenceToBoard, Point myPosition) {
-        board  = referenceToBoard;
-        requests = requestList;
-        myPos = myPosition;
+    public MinUnpaidTimeRequestUtilityCalculator(List<Request> requestList, Board referenceToBoard, Point myPosition) {
+       super(requestList,referenceToBoard);
+       myPos = myPosition;
     }
 
     @Override
