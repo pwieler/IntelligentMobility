@@ -13,7 +13,7 @@ public class User extends Entity {
 	public Agent matched_agent;
 
 
-	Point intermediate_stop;
+	Point intermediate_stop = new Point(-1,-1);
 	int steps_to_intermediate_stop;
 
 
@@ -87,14 +87,18 @@ public class User extends Entity {
 		return MATCHED;
 	}
 
-	public void userCooperationStart(){
+	public void userCooperationStart(Point intersection){
+		System.out.println("cooperation");
+		intermediate_stop = intersection;
 		color = Color.PINK;
 		state = USER_STATE.INTERMEDIATE_STOP;
 	}
 
 	public void userCooperationEnd(){
-		color = Color.RED;
+		System.out.println("cooperation end");
+		color = Color.PINK;
 		state = USER_STATE.WAITING;
+		intermediate_stop = new Point(-1,-1);
 	}
 
 	public void userPickedUp(){

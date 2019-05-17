@@ -12,7 +12,7 @@ public class Agent extends Entity {
 	static int id_count = 0;
 	int ID;
     AgentStrategy strategy;
-	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
+	public enum AGENT_STATE {IDLE, AWAITING_CONFIRMATION, PARTLY_BOOKED, FULLY_BOOKED};
 
 	public AGENT_STATE state;
 
@@ -55,7 +55,7 @@ public class Agent extends Entity {
 		List<Point> tmp_destinations = new LinkedList<Point>();
 
 		for(User u:tmp_passengers){
-			tmp_destinations.add(u.target_position);
+			tmp_destinations.add(u.intermediate_stop); // tgt_point or intermediate_stop?
 		}
 
 		for(User u: confirmed_users){
@@ -79,19 +79,51 @@ public class Agent extends Entity {
 	// Core communication
 	public boolean confirmMatch(Request user_request){
 
-		if(state == AGENT_STATE.FULL){
+		if(state == AGENT_STATE.FULLY_BOOKED){
 			return false;
 		}else{
 			user_request.match(this.ID);
 			confirmed_users.add(Core.users.get(user_request.userID));
 
-			if(confirmed_users.size()>=capacity-1){
-				setState(AGENT_STATE.FULL);
+			if(confirmed_users.size()>=capacity){
+				setState(AGENT_STATE.FULLY_BOOKED);
 			}else{
-				setState(AGENT_STATE.OCCUPIED);
+				setState(AGENT_STATE.PARTLY_BOOKED);
 			}
 
 			return true;
+		}
+	}
+
+	public void unMatch(User u){
+		confirmed_users.remove(u);
+		tmp_passengers.remove(u);
+		passengers.remove(u);
+		updateState();
+	}
+
+	public void changeMatch(User u){
+
+		if(u.MATCHED){
+			u.matched_agent.unMatch(u);
+		}
+
+		u.MATCHED = true;
+		u.matched_agent = this;
+
+		confirmed_users.add(u);
+
+		updateState();
+
+	}
+
+	public void updateState(){
+		if (confirmed_users.size() > 0 && confirmed_users.size() < capacity) {
+			setState(AGENT_STATE.PARTLY_BOOKED);
+		}else if(confirmed_users.size() == 0) {
+			setState(AGENT_STATE.IDLE);
+		}else{
+			setState(AGENT_STATE.FULLY_BOOKED);
 		}
 	}
 
@@ -105,12 +137,12 @@ public class Agent extends Entity {
 				this.state = AGENT_STATE.AWAITING_CONFIRMATION;
 				color = Color.GRAY;
 				break;
-			case OCCUPIED:
-				this.state = AGENT_STATE.OCCUPIED;
+			case PARTLY_BOOKED:
+				this.state = AGENT_STATE.PARTLY_BOOKED;
 				color = Color.CYAN;
 				break;
-			case FULL:
-				this.state = AGENT_STATE.FULL;
+			case FULLY_BOOKED:
+				this.state = AGENT_STATE.FULLY_BOOKED;
 				color = Color.YELLOW;
 				break;
 			default:
@@ -124,7 +156,7 @@ public class Agent extends Entity {
 			return;
 		}
 
-		if(state != AGENT_STATE.FULL){
+		if(state != AGENT_STATE.FULLY_BOOKED){
 
 			//if agent is idle accept request based on the following
 			//minimize "unpaid" time: sort to minimum pickup distance
@@ -200,7 +232,7 @@ public class Agent extends Entity {
 //			first.appendOffer(this);
 //			second.appendOffer(this);
 
-			if(state == AGENT_STATE.OCCUPIED){
+			if(state == AGENT_STATE.PARTLY_BOOKED){
 				// leave state the same!
 			}else{
 				setState(AGENT_STATE.AWAITING_CONFIRMATION);
@@ -257,85 +289,120 @@ public class Agent extends Entity {
 	}
 
 	public void cooperate(){
+
 		User u = sense(route.parent.getPoint());
+
 		if(u!=null && !confirmed_users.contains(u)){
 			System.out.println("now");
-			//pickUp(sensed_u, false);
-
-			if(u.MATCHED){
-				// Calculate peer_agent_route_without picking up!
-				List<Point> new_route_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u);
-
-				// See where it intersects with our route!
-				Board.Node tmp = route;
-				Point intersection = point;
-
-				int tmp_capacity = passengers.size() + 1; // Current capacity + the one user that we pick up now!
-				int steps = 0;
-				int index;
-
-				boolean deliverUser = false;
-
-				while(tmp!=null){
-
-					if(tmp.pickUp){
-						tmp_capacity++;
-					}
-					if(tmp.dropOff){
-						tmp_capacity--;
-					}
-
-					// Search for an intersection of peer_agent route and our route!
-					index = new_route_peer_agent.indexOf(tmp.getPoint());
-					if(index!=-1 && index >= steps){
-						intersection = tmp.getPoint();
-					}
-
-					// If current tmp is the target_location just stop!
-					if(tmp.getPoint().equals(u.target_position)){
-						intersection = tmp.getPoint();
-						deliverUser = true;
-						break;
-					}
-
-					// If car is too full --> user has to go off!
-					if(tmp_capacity>=capacity){
-						intersection = tmp.getPoint();
-						break;
-					}
-
-					tmp = tmp.parent;
-					steps++;
-				}
-
-				// We reach intersection point in "steps"!
-
-				if(deliverUser){
-					// This agent delivers the user to its goal --> put him to confirmed_users and add him to passengers!
-					// Tell peer agent that he doesn't need to deliver him anymore!
-				}else{
-					if(intersection.equals(point)){
-						// do nothing
-						// peer agent goes through that cell anyways --> so no need to pick him up!
-						// (still it could be good to move him closer to the target and maybe other agents bring him again further!)
-						// but:
-						// this is the only intersection!! --> so if we move the agent somewhere else the peer agent has to do a detour!
-					}else{
-						// drive user to intersection, drop him there!
-						// tell peer agent where to pick user up! (intersection point!)
-					}
-				}
 
 
-
+			// Calculate peer_agent_route_without picking up!
+			List<Point> new_route_peer_agent = new LinkedList<Point>();
+			if(u.MATCHED) {
+				new_route_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u);
 			}
+
+			// See where it intersects with our route!
+			Board.Node tmp = route;
+			Point intersection = point;
+
+			int tmp_capacity = passengers.size() + 1; // Current capacity + the one user that we pick up now!
+			int steps = 0;
+			int index;
+
+			boolean deliverUser = false;
+
+			while(tmp!=null){
+
+				if(tmp.pickUp){
+					tmp_capacity++;
+				}
+				if(tmp.dropOff){
+					tmp_capacity--;
+				}
+
+				// Search for an intersection of peer_agent route and our route!
+				index = new_route_peer_agent.indexOf(tmp.getPoint());
+				if(index!=-1 && index >= steps){
+					intersection = tmp.getPoint();
+				}
+
+				// If current tmp is the target_location just stop!
+				if(tmp.getPoint().equals(u.target_position)){
+					intersection = tmp.getPoint();
+					deliverUser = true;
+					break;
+				}
+
+				// If car is too full --> user has to go off!
+				if(tmp_capacity>capacity){
+					intersection = tmp.getPoint();
+					break;
+				}
+
+				tmp = tmp.parent;
+				steps++;
+			}
+
+			// We reach intersection point in "steps"!
+
+
+			// Decision part!
+
+
+
+			if (deliverUser) {
+				// This agent delivers the user to its goal --> put him to confirmed_users and add him to passengers!
+				// Tell peer agent that he doesn't need to deliver him anymore!
+				System.out.println("deliver");
+
+				if(u.MATCHED) {
+					System.out.println("matched");
+				}else{
+					System.out.println("free");
+				}
+
+				changeMatch(u);
+
+				if (!passengers.contains(u) && passengers.size() < capacity) {
+					passengers.add(u);
+					u.userPickedUp();
+				}
+
+			} else {
+				if (intersection.equals(point)) {
+					// do nothing
+					// peer agent goes through that cell anyways --> so no need to pick him up!
+					// (still it could be good to move him closer to the target and maybe other agents bring him again further!)
+					// but:
+					// this is the only intersection!! --> so if we move the agent somewhere else the peer agent has to do a detour!
+					System.out.println("do nothing");
+				} else {
+					System.out.println("cooperate");
+					// drive user to intersection, drop him there!
+					// tell peer agent where to pick user up! (intersection point!)
+					if (!passengers.contains(u) && passengers.size() < capacity) {
+						passengers.add(u);
+						tmp_passengers.add(u);
+						u.userCooperationStart(intersection);
+					}
+
+					System.out.println("ID: "+ID+" Current: "+point+" Stop: "+intersection);
+				}
+			}
+
+
+
+
+
+
 
 
 		}
 	}
 
 	public void act(){
-		if(state == AGENT_STATE.OCCUPIED || state == AGENT_STATE.FULL){
+		if(state == AGENT_STATE.PARTLY_BOOKED || state == AGENT_STATE.FULLY_BOOKED){
 
 			// Replan
 			route = buildRoute();
@@ -349,6 +416,32 @@ public class Agent extends Entity {
 					// Move to next route element
 					move(route.parent.getPoint());
 
+					// Check if dropOff possible
+					if (route.parent.dropOff) {
+
+						Iterator<User> iter = passengers.iterator();
+						while (iter.hasNext()) {
+							User u = iter.next();
+							if ((u.target_position.equals(route.parent.point))||(u.intermediate_stop.equals(route.parent.point))) {
+								iter.remove();
+
+								if(u.target_position.equals(route.parent.point)){
+									confirmed_users.remove(u);
+								}
+
+								tmp_passengers.remove(u);
+
+								if(u.state == User.USER_STATE.INTERMEDIATE_STOP){
+									u.userCooperationEnd();
+								}else{
+									u.userDelivered();
+								}
+							}
+						}
+
+						updateState();
+					}
+
 					// Check if pickup possible
 					if (route.parent.pickUp) {
 						for (User u : confirmed_users) {
@@ -358,26 +451,6 @@ public class Agent extends Entity {
 									u.userPickedUp();
 								}
 							}
-						}
-					}
-
-					// Check if dropOff possible
-					if (route.parent.dropOff) {
-
-						Iterator<User> iter = passengers.iterator();
-						while (iter.hasNext()) {
-							User u = iter.next();
-							if (u.target_position.equals(route.parent.point)) {
-								iter.remove();
-								confirmed_users.remove(u);
-								u.userDelivered();
-							}
-						}
-
-						if (confirmed_users.size() > 0) {
-							setState(AGENT_STATE.OCCUPIED);
-						} else {
-							setState(AGENT_STATE.IDLE);
 						}
 					}
 
