@@ -15,8 +15,12 @@ public class User extends Entity {
     UserStrategy strategy;
 	Point target_position;
 	Request myRequest;
+	int cluster;
 
-
+	
+	public Point getTarget_position() {
+		return target_position;
+	}
 	public User(Point init, Point target, Color color, Board boardReference) {
 		super(init, color);
         referenceToBoard = boardReference;
@@ -94,6 +98,10 @@ public class User extends Entity {
 
 	public void moveUser(Point newpoint) {
 		point = newpoint;
+	}
+	public void setCluster(int cluster) {
+		this.cluster=cluster;
+		
 	}
 
 
