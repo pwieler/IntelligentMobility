@@ -27,7 +27,7 @@ public class KMedoids implements ClusterAlgorithm {
    }
 
    @Override
-   public void cluster(List<User> users, int clusters) {
+   public void cluster(Map<Integer, User> users, int clusters) {
 	  this.clusters = clusters;
 	  DoubleMatrix2D data = createMatrix(users);
 	  
@@ -120,13 +120,15 @@ public class KMedoids implements ClusterAlgorithm {
       }
    }
    
-   private DoubleMatrix2D createMatrix(List<User> users) {
+   private DoubleMatrix2D createMatrix(Map<Integer, User> users) {
 	   double[][] values = new double[users.size()][4];
-	   for(int i = 0; i <values.length;i++) {
-			   values[i][0] = users.get(i).point.getX();
-			   values[i][1] = users.get(i).point.getY();
-			   values[i][2] = users.get(i).getTarget_position().getX();
-			   values[i][3] = users.get(i).getTarget_position().getY();
+	   int i=0;
+	   for(User user : users.values()) {
+			   values[i][0] = user.point.getX();
+			   values[i][1] = user.point.getY();
+			   values[i][2] = user.getTarget_position().getX();
+			   values[i][3] = user.getTarget_position().getY();
+			   i++;
 	   }
 	   
 	   DoubleMatrix2D matrix = DoubleFactory2D.dense.make(values);
@@ -160,17 +162,19 @@ public class KMedoids implements ClusterAlgorithm {
       this.distanceMeasure = distanceMeasure;
    }
    
-   public List<User> userDefineCluster(List<User> users) {
-	   for(int i=0; i<users.size(); i++) {
+   public Map<Integer, User> userDefineCluster(Map<Integer, User> users) {
+	   int i=0;
+	   for(User user: users.values()) {
 		   for(int j=0;j<clusters;j++) {
 			   if(partition.get(i,j)==1)
-				   users.get(i).setCluster(j+1);
+				   user.setCluster(j+1);
 			   
 			   if(clusterValues.get(j+1)!=null)
 				   clusterValues.put(j+1,clusterValues.get(j+1)+1);
 			   else
 				   clusterValues.put(j+1,1);
 		   }
+		   i++;
 	   }
 	   return users;
    }
@@ -183,6 +187,7 @@ public class KMedoids implements ClusterAlgorithm {
 		   if(clusterIndex==cluster)
 			   return weight;
 	   }
+
 		   
 	   return weight;
    }

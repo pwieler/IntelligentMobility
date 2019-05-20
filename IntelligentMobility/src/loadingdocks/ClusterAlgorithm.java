@@ -11,5 +11,5 @@ public interface ClusterAlgorithm {
 
     DoubleMatrix2D getPartition();
 
-	void cluster(List<User> users, int clusters);
+	void cluster(Map<Integer, User> users, int clusters);
 }

@@ -103,6 +103,9 @@ public class User extends Entity {
 		this.cluster=cluster;
 		
 	}
+	public int getCluster() {
+		return cluster;
+	}
 
 
 }

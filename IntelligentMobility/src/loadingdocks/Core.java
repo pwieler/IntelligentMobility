@@ -21,6 +21,7 @@ public class Core {
 
     public static void initialize(Board b) {
         board = b;
+        cluster();
     }
 
     public static void reset(){
@@ -29,6 +30,7 @@ public class Core {
         users.clear();
         requests.clear();
         board.reset();
+        cluster();
         resetLock=false;
     }
 
@@ -38,6 +40,7 @@ public class Core {
 
     public static void registerToCore(User u){
         users.put(u.ID,u);
+        
     }
 
     public static void appendRequest(Request r){
@@ -128,5 +131,11 @@ public class Core {
         //XYChart chart = new XYChart(agents);
         
         runThread.stop();
+    }
+    
+    public static void cluster() {
+    	KMedoids cluster = new KMedoids();
+		cluster.cluster(users,3);
+		users = cluster.userDefineCluster(users);
     }
 }
