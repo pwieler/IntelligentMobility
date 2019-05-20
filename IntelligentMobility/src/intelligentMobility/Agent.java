@@ -42,7 +42,7 @@ public class Agent extends Entity {
 		Core.registerToCore(this);
 		type = pType;
 		this.referenceToBoard = boardReference;
-		strategy = AgentStrategy.MinUnpaidTime;
+		strategy = AgentStrategy.ClusterBased;
 
 		setState(AGENT_STATE.IDLE);
 	}
@@ -388,6 +388,8 @@ public class Agent extends Entity {
 						}else{
 
 						}
+					}else{
+						intersection = tmp.getPoint();
 					}
 
 
