@@ -87,8 +87,20 @@ public class Core {
         board.step();
         broadcastRequests();
         broadcastOffers();
-        //System.out.println(time_steps);
-        time_steps++;
+
+
+        // Time-steps
+        int notDeliveredUsers = 0;
+        for(User uu:users.values()){
+            if(uu.state != User.USER_STATE.DELIVERED){
+                notDeliveredUsers++;
+            }
+        }
+
+        if(notDeliveredUsers>0){
+            System.out.println(time_steps);
+            time_steps++;
+        }
     }
 
 

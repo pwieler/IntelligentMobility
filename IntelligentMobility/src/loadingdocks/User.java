@@ -47,8 +47,13 @@ public class User extends Entity {
 	 *****************************/
 
 	public void sendRequest(){
-		myRequest = new Request(ID,point,target_position);
-		Core.appendRequest(myRequest);
+
+		if(point.equals(target_position)){
+			userDelivered();
+		}else{
+			myRequest = new Request(ID,point,target_position);
+			Core.appendRequest(myRequest);
+		}
 	}
 
 

@@ -354,6 +354,8 @@ public class Agent extends Entity {
 
 	public void cooperate(User u, boolean ITERATIVE){
 
+
+		// Replan with the temporary users!
 		if(ITERATIVE){
 			List<User> tmp_passengers_copy = new LinkedList<>();
 			tmp_passengers_copy.addAll(tmp_passengers);
@@ -365,12 +367,12 @@ public class Agent extends Entity {
 			tmp_passengers.clear();
 
 			for(User u_tmp:tmp_passengers_copy){
-				route = buildRoute();
 				cooperate(u_tmp, false);
 			}
 		}
 
-		route = buildRoute();
+		// Set correct pickups and targets to make correct cooperation planning
+		augmentRoute();
 
 
 		if(u!=null && !confirmed_users.contains(u)){
@@ -469,15 +471,8 @@ public class Agent extends Entity {
 			if (deliverUser) {
 				// This agent delivers the user to its goal --> put him to confirmed_users and add him to passengers!
 				// Tell peer agent that he doesn't need to deliver him anymore!
-				System.out.println("deliver: "+point);
 
 				u.DELIVER_MODE = true;
-
-				if(u.MATCHED) {
-					System.out.println("matched");
-				}else{
-					System.out.println("free");
-				}
 
 				changeMatch(u);
 
@@ -495,7 +490,6 @@ public class Agent extends Entity {
 					// (still it could be good to move him closer to the target and maybe other agents bring him again further!)
 					// but:
 					// this is the only intersection!! --> so if we move the agent somewhere else the peer agent has to do a detour!
-					System.out.println("do nothing");
 				} else {
 					// drive user to intersection, drop him there!
 					// tell peer agent where to pick user up! (intersection point!)
@@ -504,8 +498,6 @@ public class Agent extends Entity {
 						tmp_passengers.add(u);
 						u.userCooperationStart(intersection, steps);
 					}
-
-					System.out.println("ID: "+ID+" Current: "+point+" Stop: "+intersection);
 				}
 			}
 
@@ -527,7 +519,6 @@ public class Agent extends Entity {
 					// Try to cooperate
 					User u_sense = sense(route.parent.getPoint());
 					cooperate(u_sense, true);
-					route = buildRoute();
 
 					// Move to next route element
 					move(route.parent.getPoint());

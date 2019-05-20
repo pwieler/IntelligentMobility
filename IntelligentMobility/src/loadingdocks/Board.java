@@ -37,29 +37,7 @@ public class Board {
 
 	public Board(){
 		this.initialize();
-		
-//		System.out.println(shortestPath(new Point(5,9),new Point(0,6)));
-//		List<Point> pickups = new ArrayList<Point>();
-//		List<Point> destinations = new ArrayList<Point>();
-//		pickups.add(new Point(10,10));
-//		destinations.add(new Point(10,19));
-//		pickups.add(new Point(5,5));
-//		destinations.add(new Point(5,8));
-////		int [] order = shortestPathOrder(new Point(1,1),pickups,destinations,null,0);
-////		Node path = shortestPath(new Point(1,1),pickups,destinations);
-//		
-//		String [] order = shortestPathOrderComplex(new Point(1,1),pickups,destinations,null,0);
-//		Node path = shortestPathComplex(new Point(1,1),pickups,destinations);
-//		for(String o : order)
-//			System.out.println(o);
-//		Node tempPath = path;
-//		if(tempPath!=null){
-//			while (tempPath.parent != null) {
-//				System.out.println(tempPath);
-//				tempPath = tempPath.parent;
-//			}
-//		}
-		
+
 	}
 
 
@@ -74,15 +52,6 @@ public class Board {
 
 
 		users = new ArrayList<User>();
-		
-		/* Random walls
-		for(int i = 0 ; i< nX*nY*wallPercentage; i++) {
-			double rX = Math.random()*nX;
-			double rY = Math.random()*nY;
-			
-			board[(int)rX][(int)rY] = new Block(Type.building, Color.gray);
-		}
-		*/
 		
 		/**Create Map **/
 		for(int i = 0;i<nX;i++) {
@@ -308,8 +277,7 @@ public class Board {
 	     
 	    while (!q.isEmpty()){//do a BFS 
 	        Node curr = q.remove(); //dequeue the front cell and enqueue its adjacent cells
-	        Point pt = curr.point; 
-//			System.out.println(">"+pt);
+	        Point pt = curr.point;
 	        for (int i = 0; i < 4; i++) { 
 	        	int x=pt.x,y=pt.y;
 	        	if(pt.x+ row[i]<nX && pt.x+ row[i]>0) {
@@ -384,12 +352,9 @@ public class Board {
 				tmp.setDropOff();
 			}
 
-			//System.out.println((tmp.point).toString()+" pickup: "+tmp.pickUp+" dropoff: "+tmp.dropOff);
-
 			tmp = tmp.parent;
 		}
 
-		//System.out.println();
 		return start_node;
 
 	}
@@ -453,7 +418,7 @@ public class Board {
 		if(path != null) {
 			completePath.add(path);
 		}else{
-			System.out.println("Current: "+src);
+
 		}
 
 
@@ -468,10 +433,6 @@ public class Board {
 		// Make List of paths to one path!
 		Node start_node = completePath.get(0);
 		Node tmp = start_node;
-
-		if(start_node == null){
-			System.out.println("null");
-		}
 
 		int i = 0;
 		while(i < completePath.size()-1){
