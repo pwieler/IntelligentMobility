@@ -94,7 +94,6 @@ public class User extends Entity {
 	}
 
 	public void userCooperationStart(Point intersection, int steps){
-		System.out.println("cooperation start");
 		intermediate_stop = intersection;
 		steps_to_intermediate_stop = steps;
 		color = Color.PINK;
@@ -102,7 +101,6 @@ public class User extends Entity {
 	}
 
 	public void userCooperationEnd(){
-		System.out.println("cooperation end: "+point);
 		color = Color.PINK;
 		state = USER_STATE.WAITING;
 		intermediate_stop = new Point(-1,-1);

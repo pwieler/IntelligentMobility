@@ -125,10 +125,6 @@ public class Agent extends Entity {
 			tmp_destinations.add(u.intermediate_stop); // tgt_point or intermediate_stop?
 		}
 
-		for(User u:passengers){
-			targets.add(u.target_position); // tgt_point or intermediate_stop?
-		}
-
 		for(User u: confirmed_users){
 			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
 				pick_ups.add(new Point(-1,-1));
@@ -409,9 +405,6 @@ public class Agent extends Entity {
 					intersection = tmp.getPoint();
 					deliverUser = true;
 					DELIVER_MODE_USERS++;
-
-					List<Point> tmp_rrr = routeToList(route,null);
-
 					break;
 				}
 
@@ -480,8 +473,8 @@ public class Agent extends Entity {
 				if(route.parent != null) {
 
 					// Try to cooperate
-					//User u_sense = sense(route.parent.getPoint());
-					//cooperate(u_sense, true);
+					User u_sense = sense(route.parent.getPoint());
+					cooperate(u_sense, true);
 
 					// Move to next route element
 					move(route.parent.getPoint());

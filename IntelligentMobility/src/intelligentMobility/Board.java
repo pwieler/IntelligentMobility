@@ -395,6 +395,7 @@ public class Board {
 	}
 	
 	private Point getNextPoint(String point,List<Point> pickups, List<Point> destinations) {
+
 		String [] pointSplit = new String[] {point.substring(0,1),point.substring(1,2)};
 		if(pointSplit[0].equals("P")) {
 			return pickups.get(Integer.parseInt(pointSplit[1]));
@@ -417,6 +418,8 @@ public class Board {
 
 		String[] order = shortestPathOrderComplex(src,pickups,destinations,null,0); 
 		List<Node> completePath = new LinkedList<Node>();
+
+
 
 		Point next_p = getNextPoint(order[0],pickups,destinations);
 		Node path = shortestPath(src,next_p);

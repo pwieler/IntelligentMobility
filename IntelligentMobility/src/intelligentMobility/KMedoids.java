@@ -31,7 +31,7 @@ public class KMedoids implements ClusterAlgorithm {
 	  this.clusters = clusters;
 	  DoubleMatrix2D data = createMatrix(users);
 	  
-	  System.out.println(data);
+	  //System.out.println(data);
 	   
       int n = data.rows(); // Number of features
 //      int p = data.columns(); // Dimensions of features
