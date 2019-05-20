@@ -1,5 +1,6 @@
 package loadingdocks;
 public enum AgentStrategy {
     MinUnpaidTime,
-    MaxGuaranteedPaidTime
+    MaxGuaranteedPaidTime,
+    ClusterBased
 }

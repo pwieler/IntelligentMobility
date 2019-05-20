@@ -57,7 +57,7 @@ public class User extends Entity {
                 } else if (strategy == UserStrategy.MostPassengers) {
 					bestOffer = new MostPassengersOfferUtilityCalculator(myRequest.offers,referenceToBoard).calculateMaxUtility();
 				} else if (strategy == UserStrategy.TimeStressed) {
-                	bestOffer = new TimeStressedOfferUtilityCalculator(myRequest.offers,referenceToBoard).calculateMaxUtility();
+                	bestOffer = new TimeStressedOfferUtilityCalculator(myRequest.offers,referenceToBoard,this.point,this.target_position).calculateMaxUtility();
 				}
 
                 match_state = bestOffer.confirmMatch(myRequest);
@@ -70,7 +70,7 @@ public class User extends Entity {
             }
 
 		}catch (Exception e){
-
+			throw e;
 		}
 
 

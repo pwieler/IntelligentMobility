@@ -46,11 +46,21 @@ public class Agent extends Entity {
         strategy = agentStrategy;
     }
 
-
-	public Board.Node buildRoute(){
-
-		List<Point> pick_ups = new LinkedList<Point>();
+    public Board.Node potentialNewRoute(Point includingMyPickup, Point includingMyDropoff) {
+		List<Point> pickups = new LinkedList<Point>();
+		pickups.add(includingMyPickup);
 		List<Point> targets = new LinkedList<Point>();
+		targets.add(includingMyDropoff);
+		return buildRoute(pickups,targets);
+	}
+
+	/**
+	 *
+	 * @param pick_ups a list containing other pickup locations than this' confirmed_users' pickups
+	 * @param targets a list containing other target locations than this' confirmed_users' targets
+	 * @return the route this agent would take to pickup and drop all confirmed_users + the given positions
+	 */
+	public Board.Node buildRoute(List<Point> pick_ups, List<Point> targets){
 
 		for(User u: confirmed_users){
 			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
@@ -198,7 +208,7 @@ public class Agent extends Entity {
 	public void act(){
 		if(state == AGENT_STATE.OCCUPIED || state == AGENT_STATE.FULL){
 
-			route = buildRoute();
+			route = buildRoute(new LinkedList<Point>(), new LinkedList<Point>());
 
 			if(route != null){
 				if(route.parent != null) {

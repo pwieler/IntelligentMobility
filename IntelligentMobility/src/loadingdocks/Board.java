@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-
+import java.util.function.Consumer;
 import loadingdocks.Block.Type;
 
 /**
@@ -133,7 +133,7 @@ public class Board {
 			Point startP = getRandomStreetCell(MobType.DEFAULT);
 			Point targetP = getRandomStreetCell(MobType.DEFAULT);
 
-			users.add(new User(startP, targetP, Color.RED,this, UserStrategy.ShortestPickup));
+			users.add(new User(startP, targetP, Color.RED,this, UserStrategy.TimeStressed));
 		}
 		
 		/** C: create agents */
@@ -262,6 +262,11 @@ public class Board {
 		public Node(Point point, Node parent) {
 			this.point = point;
 			this.parent = parent;
+		}
+		public void visit(Consumer<Node> visitor) {
+			visitor.accept(this);
+			if(parent != null)
+				parent.visit(visitor);
 		}
 
 		public Node(Point point, Node parent, boolean pickUp, boolean dropOff) {
