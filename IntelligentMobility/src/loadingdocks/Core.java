@@ -83,10 +83,11 @@ public class Core {
     private static RunThread runThread;
 
     public static void step(){
+
         board.step();
         broadcastRequests();
         broadcastOffers();
-        System.out.println(time_steps);
+        //System.out.println(time_steps);
         time_steps++;
     }
 

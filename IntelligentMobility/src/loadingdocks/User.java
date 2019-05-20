@@ -12,6 +12,8 @@ public class User extends Entity {
 	public boolean MATCHED = false;
 	public Agent matched_agent;
 
+	public boolean DELIVER_MODE = false;
+
 
 	Point intermediate_stop = new Point(-1,-1);
 	int steps_to_intermediate_stop;
@@ -87,15 +89,16 @@ public class User extends Entity {
 		return MATCHED;
 	}
 
-	public void userCooperationStart(Point intersection){
+	public void userCooperationStart(Point intersection, int steps){
 		System.out.println("cooperation start");
 		intermediate_stop = intersection;
+		steps_to_intermediate_stop = steps;
 		color = Color.PINK;
 		state = USER_STATE.INTERMEDIATE_STOP;
 	}
 
 	public void userCooperationEnd(){
-		System.out.println("cooperation end");
+		System.out.println("cooperation end: "+point);
 		color = Color.PINK;
 		state = USER_STATE.WAITING;
 		intermediate_stop = new Point(-1,-1);
@@ -106,14 +109,24 @@ public class User extends Entity {
 		state = USER_STATE.PICKED_UP;
 	}
 
-	public void userDelivered(){
+	public boolean userDelivered(){
 		color = Color.green;
 		state = USER_STATE.DELIVERED;
+
+		if(DELIVER_MODE){
+			DELIVER_MODE = false;
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 
 	public void moveUser(Point newpoint) {
 		point = newpoint;
+		if(state==USER_STATE.INTERMEDIATE_STOP){
+			steps_to_intermediate_stop--;
+		}
 	}
 
 

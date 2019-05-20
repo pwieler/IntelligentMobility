@@ -16,6 +16,8 @@ public class Agent extends Entity {
 
 	public AGENT_STATE state;
 
+	public int DELIVER_MODE_USERS = 0;
+
 	public int capacity = 4;
 
 	public List<User> confirmed_users = new LinkedList<User>();
@@ -47,8 +49,58 @@ public class Agent extends Entity {
         strategy = agentStrategy;
     }
 
+	public void augmentRoute(){
+
+		List<Point> pickups = new LinkedList<Point>();
+		List<Point> targets = new LinkedList<Point>();
+
+		for(User u:tmp_passengers){
+			targets.add(u.intermediate_stop); // tgt_point or intermediate_stop?
+		}
+
+		for(User u:passengers){
+			targets.add(u.target_position); // tgt_point or intermediate_stop?
+		}
+
+		for(User u: confirmed_users){
+			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
+				pickups.add(new Point(-1,-1));
+			}else if(u.state == User.USER_STATE.INTERMEDIATE_STOP){
+				pickups.add(u.intermediate_stop);
+			}else{
+				pickups.add(u.point);
+			}
+
+			targets.add(u.target_position);
+		}
+
+		Board.Node tmp = route;
+		while(tmp!=null){
+
+			if(pickups.contains(tmp.point)){
+				tmp.setPickUp();
+			}
+			if(targets.contains(tmp.point)){
+				tmp.setDropOff();
+			}
+
+			tmp = tmp.parent;
+		}
+	}
+
 
 	public Board.Node buildRoute(){
+
+		DELIVER_MODE_USERS = 0;
+		for(User uuu : passengers){
+			if(uuu.DELIVER_MODE){
+				DELIVER_MODE_USERS++;
+			}
+		}
+
+		if(DELIVER_MODE_USERS>0){
+			return route;
+		}
 
 		List<Point> pick_ups = new LinkedList<Point>();
 		List<Point> targets = new LinkedList<Point>();
@@ -68,6 +120,7 @@ public class Agent extends Entity {
 			}
 
 			targets.add(u.target_position);
+
 		}
 
 		Board.Node paths = referenceToBoard.shortestPathComplex(point,pick_ups,targets,tmp_destinations);
@@ -111,7 +164,7 @@ public class Agent extends Entity {
 		u.MATCHED = true;
 		u.matched_agent = this;
 
-		confirmed_users.add(u);
+		//confirmed_users.add(u);
 
 		updateState();
 
@@ -128,6 +181,13 @@ public class Agent extends Entity {
 	}
 
 	public void setState(AGENT_STATE state){
+		if(passengers.size()>=capacity){
+			color = Color.YELLOW;
+		}else if(passengers.size()>0){
+			color = Color.CYAN;
+		}else{
+			color = Color.GRAY;
+		}
 		switch(state){
 			case IDLE:
 				this.state = AGENT_STATE.IDLE;
@@ -135,15 +195,15 @@ public class Agent extends Entity {
 				break;
 			case AWAITING_CONFIRMATION:
 				this.state = AGENT_STATE.AWAITING_CONFIRMATION;
-				color = Color.GRAY;
+				//color = Color.GRAY;
 				break;
 			case PARTLY_BOOKED:
 				this.state = AGENT_STATE.PARTLY_BOOKED;
-				color = Color.CYAN;
+				//color = Color.CYAN;
 				break;
 			case FULLY_BOOKED:
 				this.state = AGENT_STATE.FULLY_BOOKED;
-				color = Color.YELLOW;
+				//color = Color.YELLOW;
 				break;
 			default:
 				break;
@@ -262,7 +322,7 @@ public class Agent extends Entity {
 		return routeList;
 	}
 
-	public List<Point> checkRouteWithoutPickingUpPassenger(User u_c){
+	public List<Point> checkRouteWithoutPickingUpPassenger(User u_c, Point intermediate_stop){
 
 		// Returns route until target_location of user without picking up!
 		// --> Later here we can e.g. also decide that its better if the other agent brings the passenger also to the target!
@@ -277,7 +337,11 @@ public class Agent extends Entity {
 
 		for(User u: confirmed_users){
 			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED || u.equals(u_c)){
-				pick_ups.add(new Point(-1,-1));
+				if(u.equals(u_c) && intermediate_stop!=null){
+					pick_ups.add(intermediate_stop);
+				}else{
+					pick_ups.add(new Point(-1,-1));
+				}
 			}else{
 				pick_ups.add(u.point);
 			}
@@ -288,23 +352,40 @@ public class Agent extends Entity {
 		return routeToList(referenceToBoard.shortestPathComplex(point,pick_ups,targets,tmp_destinations),u_c.target_position);
 	}
 
-	public void cooperate(){
+	public void cooperate(User u, boolean ITERATIVE){
 
-		User u = sense(route.parent.getPoint());
+		if(ITERATIVE){
+			List<User> tmp_passengers_copy = new LinkedList<>();
+			tmp_passengers_copy.addAll(tmp_passengers);
+
+			for(User u_tmp:tmp_passengers){
+				passengers.remove(u_tmp);
+				u_tmp.userCooperationEnd();
+			}
+			tmp_passengers.clear();
+
+			for(User u_tmp:tmp_passengers_copy){
+				route = buildRoute();
+				cooperate(u_tmp, false);
+			}
+		}
+
+		route = buildRoute();
+
 
 		if(u!=null && !confirmed_users.contains(u)){
 
 			// Calculate peer_agent_route_without picking up!
 			List<Point> new_route_peer_agent = new LinkedList<Point>();
 			if(u.MATCHED) {
-				new_route_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u);
+				new_route_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u,null);
 			}
 
 			// Calculate shortestPath of user
 			List<Point> shortest_path_user_target = routeToList(referenceToBoard.shortestPath(point,u.target_position),null);
 
 			// See where it intersects with our route!
-			Board.Node tmp = route;
+			Board.Node tmp = route.parent;
 			Point intersection = point;
 
 			int tmp_capacity = passengers.size() + 1; // Current capacity + the one user that we pick up now!
@@ -312,6 +393,8 @@ public class Agent extends Entity {
 			int index;
 
 			boolean deliverUser = false;
+
+			int distance_to_goal = 9999;
 
 			while(tmp!=null){
 
@@ -324,11 +407,29 @@ public class Agent extends Entity {
 
 				// If track differs from shortestPath, stop. But: if we can find intersection with peer_agent_route maybe we should go there --> lets see!
 				// Calc always shortestDistance if getting closer go there!
-				try{
-					if(tmp.getPoint()==shortest_path_user_target.get(steps)){
-						intersection = tmp.getPoint();
+//				try{
+//					if(tmp.getPoint()==shortest_path_user_target.get(steps)){
+//						intersection = tmp.getPoint();
+//					}
+//				}catch (Exception e){
+//
+//				}
+
+				int tmp_distance_to_goal = routeToList(referenceToBoard.shortestPath(tmp.getPoint(),u.target_position),null).size();
+				if(tmp_distance_to_goal<distance_to_goal){
+					//intersection = tmp.getPoint();
+					distance_to_goal = tmp_distance_to_goal;
+					if(u.MATCHED){
+						List<Point> route_with_intermediate_stop_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u,tmp.getPoint());
+						// It is possible to bring user there! with shorter distance_to_goal then at the moment! --> check if route makes sense for peer agent!
+						index = route_with_intermediate_stop_peer_agent.indexOf(tmp.getPoint());
+						if(index!=-1 && index >= steps){
+							intersection = tmp.getPoint();
+						}else{
+
+						}
 					}
-				}catch (Exception e){
+
 
 				}
 
@@ -343,10 +444,12 @@ public class Agent extends Entity {
 				if(tmp.getPoint().equals(u.target_position)){
 					intersection = tmp.getPoint();
 					deliverUser = true;
+					DELIVER_MODE_USERS++;
+
+					List<Point> tmp_rrr = routeToList(route,null);
+
 					break;
 				}
-
-
 
 				// If car is too full --> user has to go off!
 				if(tmp_capacity>capacity){
@@ -366,7 +469,9 @@ public class Agent extends Entity {
 			if (deliverUser) {
 				// This agent delivers the user to its goal --> put him to confirmed_users and add him to passengers!
 				// Tell peer agent that he doesn't need to deliver him anymore!
-				System.out.println("deliver");
+				System.out.println("deliver: "+point);
+
+				u.DELIVER_MODE = true;
 
 				if(u.MATCHED) {
 					System.out.println("matched");
@@ -380,6 +485,8 @@ public class Agent extends Entity {
 					passengers.add(u);
 					u.userPickedUp();
 				}
+
+				augmentRoute();
 
 			} else {
 				if (intersection.equals(point)) {
@@ -395,22 +502,18 @@ public class Agent extends Entity {
 					if (!passengers.contains(u) && passengers.size() < capacity) {
 						passengers.add(u);
 						tmp_passengers.add(u);
-						u.userCooperationStart(intersection);
+						u.userCooperationStart(intersection, steps);
 					}
 
 					System.out.println("ID: "+ID+" Current: "+point+" Stop: "+intersection);
 				}
 			}
 
-
-
-
-
-
-
-
 		}
+
 	}
+
+
 
 	public void act(){
 		if(state == AGENT_STATE.PARTLY_BOOKED || state == AGENT_STATE.FULLY_BOOKED){
@@ -422,7 +525,9 @@ public class Agent extends Entity {
 				if(route.parent != null) {
 
 					// Try to cooperate
-					cooperate();
+					User u_sense = sense(route.parent.getPoint());
+					cooperate(u_sense, true);
+					route = buildRoute();
 
 					// Move to next route element
 					move(route.parent.getPoint());
@@ -445,7 +550,11 @@ public class Agent extends Entity {
 								if(u.state == User.USER_STATE.INTERMEDIATE_STOP){
 									u.userCooperationEnd();
 								}else{
-									u.userDelivered();
+									boolean USER_WAS_IN_DELIVER_MODE = u.userDelivered();
+
+									if(USER_WAS_IN_DELIVER_MODE){
+										DELIVER_MODE_USERS--;
+									}
 								}
 							}
 						}
@@ -470,6 +579,8 @@ public class Agent extends Entity {
 					if (route.parent == null) {
 						route = null;
 					}
+
+					updateState();
 				}
 			}
 
