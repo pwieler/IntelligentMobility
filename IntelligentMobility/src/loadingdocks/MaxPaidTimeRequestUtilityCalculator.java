@@ -10,7 +10,7 @@ public class MaxPaidTimeRequestUtilityCalculator extends RequestUtilityCalculato
     }
 
     @Override
-    Request calculateMaxUtilityRequest() {
+    Request calculateMaxUtility() {
         float maxLength = 0.0f;
         float currentLength;
         Request maxPaidTime = null;

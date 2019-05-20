@@ -1,5 +1,7 @@
 package loadingdocks;
 
+import org.apache.commons.math3.stat.clustering.Cluster;
+
 import java.awt.Color;
 import java.awt.Point;
 import java.util.Iterator;
@@ -85,7 +87,7 @@ public class Agent extends Entity {
 			return false;
 		}else{
 			user_request.match(this.ID);
-			confirmed_users.add(Core.users.get(user_request.userID));
+			confirmed_users.add(user_request.user);
 
 			if(confirmed_users.size()>=capacity){
 				setState(AGENT_STATE.FULL);
@@ -133,62 +135,19 @@ public class Agent extends Entity {
 		    if(confirmed_users.isEmpty()) {
                 if (strategy == AgentStrategy.MinUnpaidTime) {
                     MinUnpaidTimeRequestUtilityCalculator calc = new MinUnpaidTimeRequestUtilityCalculator(requestList, referenceToBoard, this.point);
-                    calc.calculateMaxUtilityRequest().appendOffer(this);
+                    calc.calculateMaxUtility().appendOffer(this);
                 }
-                else {
+                else { //choose longest trip
                     MaxPaidTimeRequestUtilityCalculator calc = new MaxPaidTimeRequestUtilityCalculator(requestList,referenceToBoard);
-                    calc.calculateMaxUtilityRequest().appendOffer(this);
+                    calc.calculateMaxUtility().appendOffer(this);
                 }
-            } else {
+            } else { //we already have a passenger
+		    	if (strategy == AgentStrategy.ClusterBased) {
+					ClusterBasedRequestUtilityCalculator calc = new ClusterBasedRequestUtilityCalculator(requestList,referenceToBoard,confirmed_users);
+					calc.calculateMaxUtility().appendOffer(this);
+				} //else dont make offfer
 
-		        
-                //assuming the agent already has an accepted request and thinks about accepting another one:
-                Request oldRequest = new Request(Integer.MAX_VALUE,new Point(),new Point()); //TODO assume this request is the current one
 
-                //"protect" old request: compare old route to the one including the new user
-                //compare old route "firstPickup,firstDrop" with new route "firstPickup,secondPickup,firstDrop,secondDrop"
-                //TODO for simplicity assume this new route is the shortest possible one (not e.g. "secondPickup,firstPickup,firstDrop,secondDrop")
-                //float myPosToFirstPickupDist = pathLength(shortestPath(point,oldRequest.initPosition));
-                float firstPickupToFirstDropDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(oldRequest.initPosition,oldRequest.targetPosition));
-                Request bestFittingRequest = null;
-                float minIncludingNewRequest = Float.MAX_VALUE;
-                for (Request newRequest : requestList) {
-                    float firstPickupToSecondPickupDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(oldRequest.initPosition,newRequest.initPosition));
-                    float secondPickupToFirstDropDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(newRequest.initPosition,oldRequest.targetPosition));
-                    float includingNewPickup = firstPickupToSecondPickupDist + secondPickupToFirstDropDist;
-                    if( includingNewPickup < minIncludingNewRequest) { // found a more fitting route combining the two requests
-                        bestFittingRequest = newRequest;
-                        minIncludingNewRequest = includingNewPickup;
-                    }
-                }
-
-                float aThreshold = 100.0f; //TODO define threshold somewhere else
-                //found the best fitting new request. is the first user not annoyed ?
-                if( minIncludingNewRequest - firstPickupToFirstDropDist <  aThreshold) {
-                    bestFittingRequest.appendOffer(this); //TODO
-
-                }
-
-                //do not protect old request: just find the best combination of 2 (or n?),
-                //with best combination meaning maximum occupancy
-                Request first = null;
-                Request second = null;
-                float distanceSharing = 0.0f;
-                for(Request request1 : requestList) {
-                    for(Request request2 : requestList) {
-                        //TODO still assume that (first pickup, second pickup, first drop, second drop) is optimal
-                        float secondPickupToFirstDropDist = referenceToBoard.pathLength(referenceToBoard.shortestPath(request2.initPosition,request1.targetPosition));
-                        if(secondPickupToFirstDropDist > distanceSharing) {
-                            first = request1;
-                            second = request2;
-                            distanceSharing = secondPickupToFirstDropDist;
-                        }
-                    }
-                }
-                //have found two requests with maximum shared distance.
-                // TODO but, is this a feasible ride ? probably no...
-                first.appendOffer(this);
-                second.appendOffer(this);
             }
 
 			if(state == AGENT_STATE.OCCUPIED){

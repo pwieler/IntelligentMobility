@@ -11,7 +11,7 @@ public class Request {
 
     static int id_count = 0;
     int ID;
-    int userID;
+    User user;
     int matchedAgentID=-1;
     Point initPosition;
     Point targetPosition;
@@ -19,9 +19,9 @@ public class Request {
     public boolean MATCHED = false;
 
 
-    public Request(int userid, Point init, Point target){
+    public Request(User u, Point init, Point target){
         ID = id_count++;
-        userID = userid;
+        user = u;
         initPosition = init;
         targetPosition = target;
         offers = new ArrayList<Agent>();

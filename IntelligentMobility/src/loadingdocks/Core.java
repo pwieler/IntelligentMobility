@@ -61,7 +61,7 @@ public class Core {
         Iterator<Request> iter = requests.iterator();
         while(iter.hasNext()){
             Request rn = iter.next();
-            if(users.get(rn.userID).processOffers()){
+            if(rn.user.processOffers()){
                 iter.remove();
             }
         }

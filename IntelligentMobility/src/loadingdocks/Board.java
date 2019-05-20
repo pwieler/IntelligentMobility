@@ -158,7 +158,7 @@ public class Board {
 			}
 
 			Point p = getRandomStreetCell(type);
-			vehicles.add(new Agent(p, yor,type,maxUsers,this,AgentStrategy.MinUnpaidTime));
+			vehicles.add(new Agent(p, yor,type,maxUsers,this,AgentStrategy.ClusterBased));
 
 		}
 		objects = new Entity[nX][nY];

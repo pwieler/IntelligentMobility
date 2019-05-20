@@ -13,7 +13,7 @@ public class MinUnpaidTimeRequestUtilityCalculator extends RequestUtilityCalcula
     }
 
     @Override
-    Request calculateMaxUtilityRequest() {
+    Request calculateMaxUtility() {
         //if agent is zero confirmed users accept request based on the following
         //minimize "unpaid" time: sort to minimum pickup distance
         Request minDistToPickup = null;

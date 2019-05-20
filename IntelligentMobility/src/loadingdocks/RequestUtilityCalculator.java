@@ -10,7 +10,7 @@ public class RequestUtilityCalculator {
         board  = referenceToBoard;
         requests = requestList;
     }
-    Request calculateMaxUtilityRequest() {
+    Request calculateMaxUtility() {
         return null;
     }
 }
