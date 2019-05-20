@@ -231,24 +231,17 @@ public class Agent extends Entity {
 		}
 
 		if(state != AGENT_STATE.FULLY_BOOKED){
-
-		    if(confirmed_users.isEmpty()) {
-                if (strategy == AgentStrategy.MinUnpaidTime) {
-                    MinUnpaidTimeRequestUtilityCalculator calc = new MinUnpaidTimeRequestUtilityCalculator(requestList, referenceToBoard, this.point);
-                    calc.calculateMaxUtility().appendOffer(this);
-                }
-                else { //choose longest trip
-                    MaxPaidTimeRequestUtilityCalculator calc = new MaxPaidTimeRequestUtilityCalculator(requestList,referenceToBoard);
-                    calc.calculateMaxUtility().appendOffer(this);
-                }
-            } else { //we already have a passenger
-		    	if (strategy == AgentStrategy.ClusterBased) {
-					ClusterBasedRequestUtilityCalculator calc = new ClusterBasedRequestUtilityCalculator(requestList,referenceToBoard,confirmed_users);
-					calc.calculateMaxUtility().appendOffer(this);
-				} //else dont make offfer
-
-
-            }
+			if (strategy == AgentStrategy.MinUnpaidTime) {
+				MinUnpaidTimeRequestUtilityCalculator calc = new MinUnpaidTimeRequestUtilityCalculator(requestList, referenceToBoard, this.point);
+				calc.calculateMaxUtility().appendOffer(this);
+			} else if (strategy == AgentStrategy.ClusterBased) {
+				ClusterBasedRequestUtilityCalculator calc = new ClusterBasedRequestUtilityCalculator(requestList,referenceToBoard,confirmed_users);
+				calc.calculateMaxUtility().appendOffer(this);
+			}
+			else { //choose longest trip
+				MaxPaidTimeRequestUtilityCalculator calc = new MaxPaidTimeRequestUtilityCalculator(requestList,referenceToBoard);
+				calc.calculateMaxUtility().appendOffer(this);
+			}
 
 			if(state == AGENT_STATE.PARTLY_BOOKED){
 				// leave state the same!
