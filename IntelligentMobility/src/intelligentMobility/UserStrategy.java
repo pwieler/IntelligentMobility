@@ -1,4 +1,4 @@
-package loadingdocks;
+package intelligentMobility;
 
 public enum UserStrategy {
     Loner,

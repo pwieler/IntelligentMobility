@@ -1,4 +1,4 @@
-package loadingdocks;
+package intelligentMobility;
 
 import java.awt.BasicStroke;
 import java.util.HashMap;

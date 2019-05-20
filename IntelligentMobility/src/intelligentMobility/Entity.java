@@ -1,4 +1,4 @@
-package loadingdocks;
+package intelligentMobility;
 
 import java.awt.Color;
 import java.awt.Point;
