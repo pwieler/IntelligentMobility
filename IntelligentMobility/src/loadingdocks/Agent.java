@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+
 public class Agent extends Entity {
 
 	static int id_count = 0;
@@ -14,7 +15,8 @@ public class Agent extends Entity {
     AgentStrategy strategy;
 	public enum AGENT_STATE {IDLE,AWAITING_CONFIRMATION,OCCUPIED,FULL};
 
-	public AGENT_STATE state = AGENT_STATE.IDLE;
+	public AGENT_STATE state;
+
 	public int capacity = 4;
 
 	public List<User> confirmed_users = new LinkedList<User>();
@@ -24,7 +26,7 @@ public class Agent extends Entity {
 	private MobType type;
 	private Board referenceToBoard;
 	public int direction = 90;
-
+	private int totalDistanceTraveled = 0;
 
 
 
@@ -35,6 +37,8 @@ public class Agent extends Entity {
 		type = pType;
 		this.referenceToBoard = boardReference;
 		strategy = AgentStrategy.MinUnpaidTime;
+
+		setState(AGENT_STATE.IDLE);
 	}
 
     public Agent(Point point, Color color,MobType pType, int countUsers, Board boardReference, AgentStrategy agentStrategy ) {
@@ -49,7 +53,7 @@ public class Agent extends Entity {
 		List<Point> targets = new LinkedList<Point>();
 
 		for(User u: confirmed_users){
-			if(u.state== User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
+			if(u.state == User.USER_STATE.PICKED_UP || u.state == User.USER_STATE.DELIVERED){
 				pick_ups.add(new Point(-1,-1));
 			}else{
 				pick_ups.add(u.point);
@@ -58,7 +62,7 @@ public class Agent extends Entity {
 			targets.add(u.target_position);
 		}
 
-		Board.Node paths = referenceToBoard.shortestPath(point,pick_ups,targets);
+		Board.Node paths = referenceToBoard.shortestPathComplex(point,pick_ups,targets);
 
 		return paths;
 	}
@@ -74,14 +78,37 @@ public class Agent extends Entity {
 			confirmed_users.add(Core.users.get(user_request.userID));
 
 			if(confirmed_users.size()>=capacity){
-				state = AGENT_STATE.FULL;
+				setState(AGENT_STATE.FULL);
 			}else{
-				state = AGENT_STATE.OCCUPIED;
+				setState(AGENT_STATE.OCCUPIED);
 			}
 
 
 
 			return true;
+		}
+	}
+
+	public void setState(AGENT_STATE state){
+		switch(state){
+			case IDLE:
+				this.state = AGENT_STATE.IDLE;
+				color = Color.BLACK;
+				break;
+			case AWAITING_CONFIRMATION:
+				this.state = AGENT_STATE.AWAITING_CONFIRMATION;
+				color = Color.GRAY;
+				break;
+			case OCCUPIED:
+				this.state = AGENT_STATE.OCCUPIED;
+				color = Color.CYAN;
+				break;
+			case FULL:
+				this.state = AGENT_STATE.FULL;
+				color = Color.YELLOW;
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -157,7 +184,7 @@ public class Agent extends Entity {
 			if(state == AGENT_STATE.OCCUPIED){
 				// leave state the same!
 			}else{
-				state = AGENT_STATE.AWAITING_CONFIRMATION;
+				setState(AGENT_STATE.AWAITING_CONFIRMATION);
 			}
 
 
@@ -202,9 +229,9 @@ public class Agent extends Entity {
 						}
 
 						if (confirmed_users.size() > 0) {
-							state = AGENT_STATE.OCCUPIED;
+							setState(AGENT_STATE.OCCUPIED);
 						} else {
-							state = AGENT_STATE.IDLE;
+							setState(AGENT_STATE.IDLE);
 						}
 					}
 
@@ -219,9 +246,15 @@ public class Agent extends Entity {
 		}
 	}
 
+	public int getTotalDistance() {
+		return this.totalDistanceTraveled;
+	}
+	
 	/* Move agent forward */
 	public void move(Point target) {
+		rotate(point,target);
 		Board.updateEntityPosition(point,target);
+		totalDistanceTraveled++;
 		if(!passengers.isEmpty()){
 			for(User u:passengers){
 				u.moveUser(target);
@@ -229,7 +262,20 @@ public class Agent extends Entity {
 		}
 		point = target;
 	}
-
+	
+	private void rotate(Point p1, Point p2) {
+		boolean vertical = Math.abs(p1.x-p2.x)<Math.abs(p1.y-p2.y);
+		boolean upright = vertical ? p1.y<p2.y : p1.x<p2.x;
+		if(vertical) {  
+			if(upright) { //move up
+				if(direction!=0) direction=0 ;
+			} else if(direction!=180) direction=180 ;
+		} else {
+			if(upright) { //move right
+				if(direction!=90) direction= 90 ;
+			} else if(direction!=270) direction=270 ;
+		}
+	}
 
 
 }

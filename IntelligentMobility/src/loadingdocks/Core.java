@@ -2,6 +2,8 @@ package loadingdocks;
 
 import java.util.*;
 
+import org.jfree.ui.RefineryUtilities;
+
 /**
  * Created by Pascal on 30.04.2019.
  */
@@ -123,6 +125,8 @@ public class Core {
 
     public static void stop() {
         runThread.interrupt();
+        //XYChart chart = new XYChart(agents);
+        
         runThread.stop();
     }
 }
