@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+
 public class Agent extends Entity {
 
 	static int id_count = 0;
@@ -264,6 +265,7 @@ public class Agent extends Entity {
 	
 	/* Move agent forward */
 	public void move(Point target) {
+		rotate(point,target);
 		Board.updateEntityPosition(point,target);
 		totalDistanceTraveled++;
 		if(!passengers.isEmpty()){
@@ -273,7 +275,20 @@ public class Agent extends Entity {
 		}
 		point = target;
 	}
-
+	
+	private void rotate(Point p1, Point p2) {
+		boolean vertical = Math.abs(p1.x-p2.x)<Math.abs(p1.y-p2.y);
+		boolean upright = vertical ? p1.y<p2.y : p1.x<p2.x;
+		if(vertical) {  
+			if(upright) { //move up
+				if(direction!=0) direction=0 ;
+			} else if(direction!=180) direction=180 ;
+		} else {
+			if(upright) { //move right
+				if(direction!=90) direction= 90 ;
+			} else if(direction!=270) direction=270 ;
+		}
+	}
 
 
 }

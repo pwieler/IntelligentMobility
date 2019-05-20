@@ -125,7 +125,7 @@ public class Core {
 
     public static void stop() {
         runThread.interrupt();
-        XYChart chart = new XYChart(agents);
+        //XYChart chart = new XYChart(agents);
         
         runThread.stop();
     }
