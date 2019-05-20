@@ -17,6 +17,7 @@ public class Core {
     static List<Request> requests = new LinkedList<Request>();
     static Board board;
     static boolean resetLock = false;
+    static int time_steps = 0;
 
 
     public static void initialize(Board b) {
@@ -25,6 +26,7 @@ public class Core {
 
     public static void reset(){
     	resetLock = true;
+    	time_steps = 0;
         agents.clear();
         users.clear();
         requests.clear();
@@ -84,6 +86,8 @@ public class Core {
         board.step();
         broadcastRequests();
         broadcastOffers();
+        System.out.println(time_steps);
+        time_steps++;
     }
 
 

@@ -293,14 +293,15 @@ public class Agent extends Entity {
 		User u = sense(route.parent.getPoint());
 
 		if(u!=null && !confirmed_users.contains(u)){
-			System.out.println("now");
-
 
 			// Calculate peer_agent_route_without picking up!
 			List<Point> new_route_peer_agent = new LinkedList<Point>();
 			if(u.MATCHED) {
 				new_route_peer_agent = u.matched_agent.checkRouteWithoutPickingUpPassenger(u);
 			}
+
+			// Calculate shortestPath of user
+			List<Point> shortest_path_user_target = routeToList(referenceToBoard.shortestPath(point,u.target_position),null);
 
 			// See where it intersects with our route!
 			Board.Node tmp = route;
@@ -321,7 +322,18 @@ public class Agent extends Entity {
 					tmp_capacity--;
 				}
 
-				// Search for an intersection of peer_agent route and our route!
+				// If track differs from shortestPath, stop. But: if we can find intersection with peer_agent_route maybe we should go there --> lets see!
+				// Calc always shortestDistance if getting closer go there!
+				try{
+					if(tmp.getPoint()==shortest_path_user_target.get(steps)){
+						intersection = tmp.getPoint();
+					}
+				}catch (Exception e){
+
+				}
+
+
+				// Search for an intersection of peer_agent route and our route! <-- earlier intersection would be better!
 				index = new_route_peer_agent.indexOf(tmp.getPoint());
 				if(index!=-1 && index >= steps){
 					intersection = tmp.getPoint();
@@ -334,9 +346,11 @@ public class Agent extends Entity {
 					break;
 				}
 
+
+
 				// If car is too full --> user has to go off!
 				if(tmp_capacity>capacity){
-					intersection = tmp.getPoint();
+					//intersection = tmp.getPoint();
 					break;
 				}
 
@@ -348,8 +362,6 @@ public class Agent extends Entity {
 
 
 			// Decision part!
-
-
 
 			if (deliverUser) {
 				// This agent delivers the user to its goal --> put him to confirmed_users and add him to passengers!
@@ -378,7 +390,6 @@ public class Agent extends Entity {
 					// this is the only intersection!! --> so if we move the agent somewhere else the peer agent has to do a detour!
 					System.out.println("do nothing");
 				} else {
-					System.out.println("cooperate");
 					// drive user to intersection, drop him there!
 					// tell peer agent where to pick user up! (intersection point!)
 					if (!passengers.contains(u) && passengers.size() < capacity) {
