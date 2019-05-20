@@ -38,6 +38,8 @@ public class Board {
 	public Board(){
 		this.initialize();
 		
+		
+		
 //		System.out.println(shortestPath(new Point(5,9),new Point(0,6)));
 //		List<Point> pickups = new ArrayList<Point>();
 //		List<Point> destinations = new ArrayList<Point>();
