@@ -12,6 +12,8 @@ import java.util.List;
 
 public class Agent extends Entity {
 
+	boolean COOPERATIVE_MODE = true;
+
 	static int id_count = 0;
 	int ID;
     AgentStrategy strategy;
@@ -42,7 +44,10 @@ public class Agent extends Entity {
 		Core.registerToCore(this);
 		type = pType;
 		this.referenceToBoard = boardReference;
+
+		// Algorithm-Properties:
 		strategy = AgentStrategy.ClusterBased;
+		COOPERATIVE_MODE = true;
 
 		setState(AGENT_STATE.IDLE);
 	}
@@ -468,8 +473,10 @@ public class Agent extends Entity {
 				if(route.parent != null) {
 
 					// Try to cooperate
-					User u_sense = sense(route.parent.getPoint());
-					cooperate(u_sense, true);
+					if(COOPERATIVE_MODE){
+						User u_sense = sense(route.parent.getPoint());
+						cooperate(u_sense, true);
+					}
 
 					// Move to next route element
 					move(route.parent.getPoint());
