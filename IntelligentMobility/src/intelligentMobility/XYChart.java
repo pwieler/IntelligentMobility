@@ -21,44 +21,66 @@ public class XYChart extends ApplicationFrame {
 	private final static String title = "Run Results";
 	private final String xLabel = "Agent";
 	private final String yLabel = "Distance";
+	private Map<Integer, Agent> allAgents;
 
-	public XYChart( Map<Integer, Agent> agents ) {
+	public XYChart( ) {
       super(title);
-      JFreeChart xylineChart = ChartFactory.createXYLineChart(
-         title ,
-         xLabel ,
-         yLabel ,
-         createDataset( agents) ,
-         PlotOrientation.VERTICAL ,
-         true , true , false);
-         
-      ChartPanel chartPanel = new ChartPanel( xylineChart );
-      chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 367 ) );
-      final XYPlot plot = xylineChart.getXYPlot( );
-      
-      XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer( );
-      renderer.setSeriesStroke( 0 , new BasicStroke( 1.0f ) );
-      plot.setRenderer( renderer ); 
-      setContentPane( chartPanel ); 
-      
-      pack( );          
-      RefineryUtilities.centerFrameOnScreen( this );          
-      setVisible( true ); 
+      allAgents = new HashMap<Integer, Agent>();
    }
+	
+	public void showGraph() {
+		JFreeChart xylineChart = ChartFactory.createXYLineChart(
+		         title ,
+		         xLabel ,
+		         yLabel ,
+		         createDataset( allAgents) ,
+		         PlotOrientation.VERTICAL ,
+		         true , true , false);
+		         
+		      ChartPanel chartPanel = new ChartPanel( xylineChart );
+		      chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 367 ) );
+		      final XYPlot plot = xylineChart.getXYPlot( );
+		      
+		      XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer( );
+		      renderer.setSeriesStroke( 0 , new BasicStroke( 1.0f ) );
+		      plot.setRenderer( renderer ); 
+		      setContentPane( chartPanel ); 
+		      
+		      pack( );          
+		      RefineryUtilities.centerFrameOnScreen( this );          
+		      setVisible( true ); 
+	}
    
-   private XYDataset createDataset(Map<Integer, Agent> agents ) {      
+   private XYDataset createDataset( Map<Integer, Agent> agents) {      
       
       final XYSeries agentsSeries  = new XYSeries( "Agents" );   
       for(int i = 0;i<agents.size();i++)
-      	agentsSeries.add( i,agents.get(i).getTotalDistance() );          
+      	agentsSeries.add( i,(agents.get(i).getTotalDistance()/agents.get(i).getTotalRuns()) );          
       
       final XYSeriesCollection dataset = new XYSeriesCollection( );                 
       dataset.addSeries( agentsSeries );
       return dataset;
    }
 
-   public static void main( String[ ] args ) {
-	   Map<Integer, Agent> agents = new HashMap<Integer, Agent>();
-	   XYChart chart = new XYChart(agents);
+   public void addRun(Map<Integer, Agent> agents) {
+	   for(int i=0;i<allAgents.size();i++) {
+		   for(int j=0;j<agents.size();j++) {
+			   if(allAgents.get(i).equals(agents.get(j))) {
+				   allAgents.get(i).addTotalDistance(agents.get(j).getTotalDistance());
+				   allAgents.get(i).incrementRun();
+			   }
+		   }
+	   }
    }
+   
+   public static void main( String[ ] args ) {
+	   Map<Integer, Agent> run1 = new HashMap<Integer, Agent>();
+	   Map<Integer, Agent> run2 = new HashMap<Integer, Agent>();
+	   
+	   XYChart chart = new XYChart();
+	   chart.addRun(run1);
+	   chart.addRun(run2);
+	   chart.showGraph();
+   }
+
 }
