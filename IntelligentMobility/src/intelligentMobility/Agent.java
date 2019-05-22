@@ -12,7 +12,7 @@ import java.util.List;
 
 public class Agent extends Entity {
 
-	boolean COOPERATIVE_MODE = true;
+	boolean COOPERATIVE_MODE;
 
 	static int id_count = 0;
 	int ID;

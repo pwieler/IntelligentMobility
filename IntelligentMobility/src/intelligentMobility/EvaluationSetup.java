@@ -25,13 +25,16 @@ public class EvaluationSetup {
     // Params
     static EvaluationMode evaluationMode = EvaluationMode.StrategyVariation;
 
-    static AgentStrategy agentStrategy = AgentStrategy.ClusterBased;
-    static UserStrategy userStrategy = UserStrategy.MostPassengers;
+    static AgentStrategy agentStrategy = AgentStrategy.MinUnpaidTime;
+    static UserStrategy userStrategy = UserStrategy.TimeStressed;
 
-    static int agent_count = 5;
-    static int user_count = 50;
+    static int agent_count = 1;
+    static int user_count = 20;
 
     static void nextSetup(){
+
+        evaluationMode = EvaluationMode.AgentVariation;
+
 
         switch(evaluationMode){
             case StrategyVariation:
@@ -68,7 +71,7 @@ public class EvaluationSetup {
 
         if(user_count>max_user){
             setup_counter = 0;
-            evaluationMode = EvaluationMode.AgentVariation;
+            evaluationMode = EvaluationMode.Default;
 
             agent_count = 1;
             user_count = 50;
@@ -151,7 +154,7 @@ public class EvaluationSetup {
 
             default:
                 setup_counter = 0;
-                evaluationMode = EvaluationMode.UserVariation;
+                evaluationMode = EvaluationMode.Default;
                 user_count = 5;
         }
     }

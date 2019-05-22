@@ -23,7 +23,7 @@ public class Core {
     static XYChart chart;
     static ArrayList<Double> xValues = new ArrayList<Double>();
     static ArrayList<Double> yValues = new ArrayList<Double>();
-    static int average_steps = 10;
+    static int average_steps = 0;
     static int steps_so_far = 0;
 
 
