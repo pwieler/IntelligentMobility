@@ -38,7 +38,7 @@ public class GUI extends JFrame {
 		private static final long serialVersionUID = 1L;
 		
 		//public List<Entity> entities = new ArrayList<Entity>();
-		public Entity[] entities = new Entity[board.nUsers+board.nVehicles];
+		public Entity[] entities = new Entity[EvaluationSetup.user_count+EvaluationSetup.agent_count];
 		
         @Override
         protected void paintComponent(Graphics g) {

@@ -23,10 +23,6 @@ public class Board {
 	private static Entity[][] objects;
 	private static List<Agent> vehicles;
 	private static List<User> users;
-	
-//	private static double wallPercentage = 0.5;
-	public static final int nVehicles = 5;
-	public static final int nUsers = 50;
 
 	boolean RANDOM_MAP = false;
 	
@@ -98,17 +94,17 @@ public class Board {
 		
 		
 		/** Add Users */
-		while(users.size()<nUsers) {
+		while(users.size()<EvaluationSetup.user_count) {
 
 			Point startP = getRandomStreetCell(MobType.DEFAULT);
 			Point targetP = getRandomStreetCell(MobType.DEFAULT);
 
-			users.add(new User(startP, targetP, Color.RED,this, UserStrategy.TimeStressed));
+			users.add(new User(startP, targetP, Color.RED,this, EvaluationSetup.userStrategy));
 		}
 		
 		/** C: create agents */
 		vehicles = new ArrayList<Agent>();
-		while(vehicles.size()<nVehicles) {
+		while(vehicles.size()<EvaluationSetup.agent_count) {
 
 			MobType type = MobType.A; //MobType.values()[new Random().nextInt(MobType.values().length)];
 
@@ -126,7 +122,7 @@ public class Board {
 			}
 
 			Point p = getRandomStreetCell(type);
-			vehicles.add(new Agent(p, yor,type,maxUsers,this,AgentStrategy.ClusterBased));
+			vehicles.add(new Agent(p, yor,type,maxUsers,this,EvaluationSetup.agentStrategy));
 
 		}
 		objects = new Entity[nX][nY];

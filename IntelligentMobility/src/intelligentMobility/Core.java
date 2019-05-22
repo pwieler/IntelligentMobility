@@ -99,7 +99,7 @@ public class Core {
         broadcastOffers();
 
 
-        // Time-steps
+        // Time-steps update
         int notDeliveredUsers = 0;
         for(User uu:users.values()){
             if(uu.state != User.USER_STATE.DELIVERED){
@@ -107,23 +107,46 @@ public class Core {
             }
         }
 
+        // Evaluation handle
         if(notDeliveredUsers>0 && time_steps < 1100){
-            System.out.println(time_steps);
+            // Continue as long as not all the users are delivered!
             time_steps++;
         }else{
+            // Now all users are delivered
             if(time_steps < 1000){
+                // Store the information and count how many data points we have collected for one system setup
+                System.out.println(time_steps);
                 chart.addRun(agents);
                 steps_so_far++;
             }
 
             if(steps_so_far<average_steps){
+                // We have not collected enough datapoints yet --> reset and get another datapoint!
                 reset();
             }else{
-            	System.out.println("Showing graph...");
-                chart.showGraph();
-                stop();
-            }
 
+                // One system state is captured --> we have enough data points for one system setup (EvaluationSetup)
+
+                // now the average has to be made over all these data points
+
+                // a new EvaluationSetup has to be configured
+                EvaluationSetup.nextSetup();
+
+                if(EvaluationSetup.evaluationMode != EvaluationSetup.EvaluationMode.Default){
+                    // And we have to start over collecting data points for the new setup:
+                    steps_so_far = 0;
+                    reset();
+                }else{
+                    // We have gone through all the setups and collected data points for all setups!
+
+                    // Now its time to build the graphs!
+                    System.out.println("Showing graph...");
+                    chart.showGraph();
+
+                    // And stop the system!
+                    stop();
+                }
+            }
         }
     }
 
