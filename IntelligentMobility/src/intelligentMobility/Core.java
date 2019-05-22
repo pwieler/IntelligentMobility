@@ -120,7 +120,7 @@ public class Core {
                 reset();
             }else{
             	System.out.println("Showing graph...");
-                chart.showGraph();
+                chart.showGraph("Average Steps","Agents");
                 stop();
             }
 
