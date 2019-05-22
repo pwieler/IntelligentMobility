@@ -110,7 +110,8 @@ public class Core {
         broadcastRequests();
         broadcastOffers();
         
-        
+        //For the graphs:
+        /*
         // Time-steps update
         int notDeliveredUsers = 0;
         for(User uu:users.values()){
@@ -177,6 +178,7 @@ public class Core {
                 }
             }
         }
+        */
     }
 
 

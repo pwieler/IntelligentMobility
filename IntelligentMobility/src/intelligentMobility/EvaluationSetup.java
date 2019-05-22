@@ -32,10 +32,10 @@ public class EvaluationSetup {
     static int agent_count = 5; 
 //    static int agent_count = 1;
 //    static int user_count = 50;
-    static int user_count = 5;
+    static int user_count = 50;
 
     static void nextSetup(){
-    	evaluationMode=EvaluationMode.UserVariation;
+    	evaluationMode=EvaluationMode.StrategyVariation;
         switch(evaluationMode){
             case StrategyVariation:
                 nextSetupStrategyVariation();
