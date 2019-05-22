@@ -119,7 +119,9 @@ public class Core {
             if(steps_so_far<average_steps){
                 reset();
             }else{
+            	System.out.println("Showing graph...");
                 chart.showGraph();
+                stop();
             }
 
         }
