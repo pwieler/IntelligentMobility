@@ -116,7 +116,7 @@ public class Core {
             if(time_steps < 1000){
                 // Store the information and count how many data points we have collected for one system setup
                 System.out.println(time_steps);
-                chart.addRun(agents);
+                chart.addRun(agents); // <--- graph-code: here information of one run is stored to graph
                 steps_so_far++;
             }
 
@@ -128,6 +128,7 @@ public class Core {
                 // One system state is captured --> we have enough data points for one system setup (EvaluationSetup)
 
                 // now the average has to be made over all these data points
+                // <-- graph-code: here calculate average of all the runs stored with addRun()
 
                 // a new EvaluationSetup has to be configured
                 EvaluationSetup.nextSetup();
@@ -140,6 +141,9 @@ public class Core {
                     // We have gone through all the setups and collected data points for all setups!
 
                     // Now its time to build the graphs!
+
+                    // <-- graph-code: here build graphs
+
                     System.out.println("Showing graph...");
                     chart.showGraph();
 

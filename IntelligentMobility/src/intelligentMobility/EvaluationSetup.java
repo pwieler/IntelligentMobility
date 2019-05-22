@@ -54,6 +54,10 @@ public class EvaluationSetup {
         System.out.println("Mode: "+evaluationMode+" Agents: "+agent_count+" User: "+user_count+" UserStrategy: "+userStrategy+" AgentStrategy: "+agentStrategy);
     }
 
+    static String getTitle(){
+        return "Mode: "+evaluationMode;
+    }
+
 
     static void nextSetupUserVariation(){
 
