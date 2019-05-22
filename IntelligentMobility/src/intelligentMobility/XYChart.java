@@ -75,7 +75,7 @@ public class XYChart extends ApplicationFrame {
 		      setVisible( true ); 
 	}
    
-  	private void addSeries(ArrayList<Double> xValues, ArrayList<Double> yValues,String seriesName) {
+  	public void addSeries(ArrayList<Double> xValues, ArrayList<Double> yValues,String seriesName) {
   			final XYSeries series  = new XYSeries( seriesName );   
 	      for(int i = 0;i<xValues.size();i++)
 	    	  series.add( xValues.get(i),yValues.get(i) ); 

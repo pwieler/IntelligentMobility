@@ -21,12 +21,16 @@ public class Core {
 
     // Chart
     static XYChart chart;
+    static ArrayList<Double> xValues = new ArrayList<Double>();
+    static ArrayList<Double> yValues = new ArrayList<Double>();
     static int average_steps = 10;
     static int steps_so_far = 0;
 
 
 
     public static void initialize(Board b) {
+    	xValues = new ArrayList<Double>();
+    	yValues = new ArrayList<Double>();
         chart = new XYChart();
         board = b;
         cluster();
@@ -92,13 +96,17 @@ public class Core {
 
     private static RunThread runThread;
 
+    static double strategyId = 0;
+    static double totalRunDistance = 0;
+    static double totalRuns = 0;
+    
     public static void step(){
 
         board.step();
         broadcastRequests();
         broadcastOffers();
-
-
+        
+        
         // Time-steps update
         int notDeliveredUsers = 0;
         for(User uu:users.values()){
@@ -115,8 +123,12 @@ public class Core {
             // Now all users are delivered
             if(time_steps < 1000){
                 // Store the information and count how many data points we have collected for one system setup
-                System.out.println(time_steps);
-                chart.addRun(agents); // <--- graph-code: here information of one run is stored to graph
+//                System.out.println(time_steps);
+//                chart.addRun(agents); // <--- graph-code: here information of one run is stored to graph
+                for(Agent agent : agents.values()) {
+                	totalRunDistance+= agent.getTotalDistance();
+                }
+                totalRuns++;
                 steps_so_far++;
             }
 
@@ -130,7 +142,12 @@ public class Core {
                 // now the average has to be made over all these data points
                 // <-- graph-code: here calculate average of all the runs stored with addRun()
 
+            	yValues.add(totalRunDistance/totalRuns);
                 // a new EvaluationSetup has to be configured
+            	xValues.add(strategyId);
+            	totalRunDistance = 0;
+                totalRuns = 0;
+            	strategyId++;
                 EvaluationSetup.nextSetup();
 
                 if(EvaluationSetup.evaluationMode != EvaluationSetup.EvaluationMode.Default){
@@ -145,7 +162,8 @@ public class Core {
                     // <-- graph-code: here build graphs
 
                     System.out.println("Showing graph...");
-                    chart.showGraph("Average Steps","Agents");
+                    chart.addSeries(xValues,yValues,"Different Strategies");
+                    chart.showLocalGraph("Average Steps","Agents");
 
                     // And stop the system!
                     stop();
