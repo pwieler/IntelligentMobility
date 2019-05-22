@@ -19,7 +19,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 
 public class XYChart extends ApplicationFrame {
 	private static final long serialVersionUID = 9136101228200499887L;
-	private final static String title = "Run Results";
+	private final static String title = EvaluationSetup.getTitle();
 	private Map<Integer, Agent> allAgents;
 	
 	private XYSeriesCollection addDataset = new XYSeriesCollection( );

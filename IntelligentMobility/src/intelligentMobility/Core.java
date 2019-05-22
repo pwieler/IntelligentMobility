@@ -21,8 +21,10 @@ public class Core {
 
     // Chart
     static XYChart chart;
+    static XYChart timeChart;
     static ArrayList<Double> xValues = new ArrayList<Double>();
     static ArrayList<Double> yValues = new ArrayList<Double>();
+    static ArrayList<Double> yTimes = new ArrayList<Double>();
     static int average_steps = 10;
     static int steps_so_far = 0;
 
@@ -31,7 +33,9 @@ public class Core {
     public static void initialize(Board b) {
     	xValues = new ArrayList<Double>();
     	yValues = new ArrayList<Double>();
+    	yTimes = new ArrayList<Double>();
         chart = new XYChart();
+        timeChart = new XYChart();
         board = b;
         cluster();
     }
@@ -96,7 +100,7 @@ public class Core {
 
     private static RunThread runThread;
 
-    static double strategyId = 0;
+    static double strategyId = 5;
     static double totalRunDistance = 0;
     static double totalRuns = 0;
     
@@ -143,11 +147,12 @@ public class Core {
                 // <-- graph-code: here calculate average of all the runs stored with addRun()
 
             	yValues.add(totalRunDistance/totalRuns);
+            	yTimes.add((double)time_steps);
                 // a new EvaluationSetup has to be configured
             	xValues.add(strategyId);
             	totalRunDistance = 0;
                 totalRuns = 0;
-            	strategyId++;
+            	strategyId+=5;
                 EvaluationSetup.nextSetup();
 
                 if(EvaluationSetup.evaluationMode != EvaluationSetup.EvaluationMode.Default){
@@ -162,8 +167,10 @@ public class Core {
                     // <-- graph-code: here build graphs
 
                     System.out.println("Showing graph...");
-                    chart.addSeries(xValues,yValues,"Different Strategies");
-                    chart.showLocalGraph("Average Steps","Agents");
+                    chart.addSeries(xValues,yValues,"Total Distance Traveled");
+                    chart.showLocalGraph("Number of Users","Total Distance Traveled");
+                    timeChart.addSeries(xValues,yTimes,"Total Time to Deliver Completely");
+                   timeChart.showLocalGraph("Number of Users","Total Time to Deliver Completely");
 
                     // And stop the system!
                     stop();
