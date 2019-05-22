@@ -1,6 +1,7 @@
 package intelligentMobility;
 
 import java.awt.BasicStroke;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,16 +20,16 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 public class XYChart extends ApplicationFrame {
 	private static final long serialVersionUID = 9136101228200499887L;
 	private final static String title = "Run Results";
-	private final String xLabel = "Agent";
-	private final String yLabel = "Distance";
 	private Map<Integer, Agent> allAgents;
+	
+	private XYSeriesCollection addDataset = new XYSeriesCollection( );
 
 	public XYChart( ) {
       super(title);
       allAgents = new HashMap<Integer, Agent>();
    }
 	
-	public void showGraph() {
+	public void showGraph(String xLabel,String yLabel) {
 		JFreeChart xylineChart = ChartFactory.createXYLineChart(
 		         title ,
 		         xLabel ,
@@ -50,8 +51,61 @@ public class XYChart extends ApplicationFrame {
 		      RefineryUtilities.centerFrameOnScreen( this );          
 		      setVisible( true ); 
 	}
+	
+	public void showGraph(String xLabel,String yLabel,ArrayList<Double> xValues, ArrayList<Double> yValues,String title) {
+		JFreeChart xylineChart = ChartFactory.createXYLineChart(
+		         title ,
+		         xLabel ,
+		         yLabel ,
+		         createDataset( xValues, yValues,title) ,
+		         PlotOrientation.VERTICAL ,
+		         true , true , false);
+		         
+		      ChartPanel chartPanel = new ChartPanel( xylineChart );
+		      chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 367 ) );
+		      final XYPlot plot = xylineChart.getXYPlot( );
+		      
+		      XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer( );
+		      renderer.setSeriesStroke( 0 , new BasicStroke( 1.0f ) );
+		      plot.setRenderer( renderer ); 
+		      setContentPane( chartPanel ); 
+		      
+		      pack( );          
+		      RefineryUtilities.centerFrameOnScreen( this );          
+		      setVisible( true ); 
+	}
    
-   private XYDataset createDataset( Map<Integer, Agent> agents) {      
+  	private void addSeries(ArrayList<Double> xValues, ArrayList<Double> yValues,String seriesName) {
+  			final XYSeries series  = new XYSeries( seriesName );   
+	      for(int i = 0;i<xValues.size();i++)
+	    	  series.add( xValues.get(i),yValues.get(i) ); 
+	  		addDataset.addSeries( series );
+	}
+  	
+  	public void showLocalGraph(String xLabel,String yLabel) {
+		JFreeChart xylineChart = ChartFactory.createXYLineChart(
+		         title ,
+		         xLabel ,
+		         yLabel ,
+		         addDataset ,
+		         PlotOrientation.VERTICAL ,
+		         true , true , false);
+		         
+		      ChartPanel chartPanel = new ChartPanel( xylineChart );
+		      chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 367 ) );
+		      final XYPlot plot = xylineChart.getXYPlot( );
+		      
+		      XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer( );
+		      renderer.setSeriesStroke( 0 , new BasicStroke( 1.0f ) );
+		      plot.setRenderer( renderer ); 
+		      setContentPane( chartPanel ); 
+		      
+		      pack( );          
+		      RefineryUtilities.centerFrameOnScreen( this );          
+		      setVisible( true ); 
+	}
+
+private XYDataset createDataset( Map<Integer, Agent> agents) {      
       
       final XYSeries agentsSeries  = new XYSeries( "Agents" );   
       for(int i = 0;i<agents.size();i++)
@@ -61,6 +115,17 @@ public class XYChart extends ApplicationFrame {
       dataset.addSeries( agentsSeries );
       return dataset;
    }
+   
+   private XYDataset createDataset( ArrayList<Double> xValues, ArrayList<Double> yValues , String title) {      
+	      
+	      final XYSeries series  = new XYSeries( "Agents" );   
+	      for(int i = 0;i<xValues.size();i++)
+	    	  series.add( xValues.get(i),yValues.get(i) );          
+	      
+	      final XYSeriesCollection dataset = new XYSeriesCollection( );                 
+	      dataset.addSeries( series );
+	      return dataset;
+	   }
 
    public void addRun(Map<Integer, Agent> agents) {
 	   if(allAgents.size()==0) {
@@ -86,7 +151,7 @@ public class XYChart extends ApplicationFrame {
 	   XYChart chart = new XYChart();
 	   chart.addRun(run1);
 	   chart.addRun(run2);
-	   chart.showGraph();
+	   chart.showGraph("Agents","Average Distance");
    }
 
 }

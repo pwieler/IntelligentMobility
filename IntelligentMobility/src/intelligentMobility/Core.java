@@ -145,7 +145,7 @@ public class Core {
                     // <-- graph-code: here build graphs
 
                     System.out.println("Showing graph...");
-                    chart.showGraph();
+                    chart.showGraph("Average Steps","Agents");
 
                     // And stop the system!
                     stop();
