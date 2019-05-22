@@ -25,6 +25,7 @@ public class EvaluationSetup {
     // Params
     static EvaluationMode evaluationMode = EvaluationMode.StrategyVariation;
 
+    //Default Strategies
     static AgentStrategy agentStrategy = AgentStrategy.MinUnpaidTime;
     static UserStrategy userStrategy = UserStrategy.TimeStressed;
     
