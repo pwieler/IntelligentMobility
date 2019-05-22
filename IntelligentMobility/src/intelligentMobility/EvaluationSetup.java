@@ -16,7 +16,7 @@ public class EvaluationSetup {
     static int setup_counter = 0;
 
     static int user_increase = 5;
-    static int max_user = 200;
+    static int max_user = 100;
 
     static int agent_increase = 2;
     static int max_agent = 30;
