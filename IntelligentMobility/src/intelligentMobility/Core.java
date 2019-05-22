@@ -19,8 +19,15 @@ public class Core {
     static boolean resetLock = false;
     static int time_steps = 0;
 
+    // Chart
+    static XYChart chart;
+    static int average_steps = 10;
+    static int steps_so_far = 0;
+
+
 
     public static void initialize(Board b) {
+        chart = new XYChart();
         board = b;
         cluster();
     }
@@ -100,9 +107,21 @@ public class Core {
             }
         }
 
-        if(notDeliveredUsers>0){
+        if(notDeliveredUsers>0 && time_steps < 1100){
             System.out.println(time_steps);
             time_steps++;
+        }else{
+            if(time_steps < 1000){
+                chart.addRun(agents);
+                steps_so_far++;
+            }
+
+            if(steps_so_far<average_steps){
+                reset();
+            }else{
+                chart.showGraph();
+            }
+
         }
     }
 
