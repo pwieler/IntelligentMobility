@@ -63,6 +63,12 @@ public class XYChart extends ApplicationFrame {
    }
 
    public void addRun(Map<Integer, Agent> agents) {
+	   if(allAgents.size()==0) {
+		   for(int i=0;i<agents.size();i++) {
+			   allAgents.put(i,agents.get(i));
+		   }
+	   }
+	   
 	   for(int i=0;i<allAgents.size();i++) {
 		   for(int j=0;j<agents.size();j++) {
 			   if(allAgents.get(i).equals(agents.get(j))) {
