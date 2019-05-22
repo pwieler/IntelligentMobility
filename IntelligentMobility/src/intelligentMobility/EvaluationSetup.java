@@ -65,9 +65,6 @@ public class EvaluationSetup {
 
     static void nextSetupUserVariation(){
 
-        agentStrategy = AgentStrategy.ClusterBased;
-        userStrategy = UserStrategy.MostPassengers;
-
         user_count+=user_increase;
 
         if(user_count>max_user){
@@ -81,9 +78,6 @@ public class EvaluationSetup {
     }
 
     static void nextSetupAgentVariation(){
-
-        agentStrategy = AgentStrategy.ClusterBased;
-        userStrategy = UserStrategy.MostPassengers;
 
         agent_count+=agent_increase;
 
